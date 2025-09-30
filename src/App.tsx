@@ -27,11 +27,10 @@ const { Header, Sider, Content } = Layout;
 const App: React.FC = () => {
   const [collapsed, setCollapsed] = useState(true);
   const navigate = useNavigate();
-    const [modalOpen, setModalOpen] = useState(false);
-    const [modalType, setModalType] = useState("");
-    const [modalTitle, setModalTitle] = useState("");
-    const [editingItem, setEditingItem] = useState(null);
-
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState("");
+  const [modalTitle, setModalTitle] = useState("");
+  const [editingItem, setEditingItem] = useState(null);
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -59,8 +58,7 @@ const App: React.FC = () => {
   });
   }
 
-
-    const handleCreateBadge = () => {
+  const handleCreateBadge = () => {
     setModalType("edit-profile");
     setModalTitle("Personal Informetion");
     setEditingItem(null);
@@ -68,28 +66,30 @@ const App: React.FC = () => {
   };
 
   return (
-    <Layout
-      className="h-full"
-style={{backgroundColor: "#232D3B"}}
-    >
+    <Layout style={{ height: '100vh', backgroundColor: "#232D3B" }}>
       <Sider
         trigger={null}
-        className="h-full flex flex-col  justify-between"
         collapsible
         collapsed={collapsed}
-        style={{backgroundColor: "#232D3B"}}
+        style={{
+          backgroundColor: "#232D3B",
+          height: '100vh',
+          position: 'relative', // Added for absolute positioning context
+        }}
       >
-        {/* Top Section */}
-        <div>
-          <div className="flex mt-3 ml-2 flex-col items-center ">
-
-          <img src="/lg.png" className="mx-auto w-[56px] h-[48px]" alt="" />
+        {/* Main Content Area */}
+        <div style={{ 
+          height: 'calc(100vh - 100px)', // Reserve space for bottom section
+          overflow: 'auto'
+        }}>
+          <div className="flex mt-3 ml-2 flex-col items-center">
+            <img src="/lg.png" className="mx-auto w-[56px] h-[48px]" alt="" />
           </div>
           <Menu
             theme="dark"
             mode="inline"
             className="mt-8 space-y-3 bg-[#232D3B]"
-            selectedKeys={[location.pathname]} // highlight active menu
+            selectedKeys={[location.pathname]}
             items={[
               {
                 key: "/",
@@ -120,17 +120,32 @@ style={{backgroundColor: "#232D3B"}}
           />
         </div>
 
-        {/* Bottom Section */}
-        <div className="p-4 flex justify-center items-center gap-3 flex-col mt-[27rem] mb-5 text-center">
+        {/* Fixed Bottom Section */}
+        <div 
+          style={{
+            position: 'absolute',
+            bottom: 4,
+            left: 0,
+            right: 0,
+            padding: '16px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '27px',
+            flexDirection: 'column',
+            backgroundColor: '#232D3B', // Match background
+          
+          }}
+        >
           <IoSettings
-          size={24}
+            size={22}
             onClick={handelNavigate}
-            className="text-white hover:text-[#A6C5F3] mx-auto text-xl"
+            className="text-white hover:text-[#A6C5F3] mx-auto text-xl cursor-pointer"
           />
           <ImExit 
-          size={24}
+            size={20}
             onClick={handelLogout}
-            className="text-white  hover:text-[#A6C5F3] mt-4 mx-auto text-xl"
+            className="text-white mr-4 hover:text-[#A6C5F3] mx-auto text-xl cursor-pointer"
           />
         </div>
       </Sider>
@@ -151,30 +166,29 @@ style={{backgroundColor: "#232D3B"}}
               </span>
             </p>
             <img
-            onClick={handleCreateBadge}
+              onClick={handleCreateBadge}
               src="https://images.unsplash.com/photo-1728577740843-5f29c7586afe?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-              className="w-10 h-10 rounded-full"
+              className="w-10 h-10 rounded-full cursor-pointer"
               alt=""
             />
           </div>
         </Header>
         <Content
-          className="h-[90vh] px-4 bg-white rounded-xl  overflow-y-scroll"
           style={{
             margin: "4px 0px",
             padding: 29,
             borderRadius: 20,
-       
-            minHeight: 280,
+            backgroundColor: 'white',
+            height: 'calc(100vh - 64px)', // Adjust based on header height
+            overflow: 'auto'
           }}
         >
           <Outlet />
         </Content>
       </Layout>
-        <CommonModal
+      <CommonModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        // onSave={handleSave}
         title={modalTitle}
         type={modalType}
         initialData={editingItem || {}}

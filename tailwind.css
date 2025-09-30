@@ -7,6 +7,9 @@
   }
 }
 
+
+
+
 :root {
   --animate-spin: spin 1s linear infinite;
 }
@@ -195,4 +198,25 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+}
+
+
+.ant-menu-item{
+    padding: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ant-menu-item:hover {
+  background-color: none !important;  /* Change to your preferred color */
+  color: white !important;  /* Change text color on hover */
+}
+
+/* Optional: Change the active item (selected item) background color */
+.ant-menu-item-selected {
+  background-color: #232D3B !important;  /* Change active item background color */
+  color: #A6C5F3 !important;  /* Active item text color */
+  
+  
 }

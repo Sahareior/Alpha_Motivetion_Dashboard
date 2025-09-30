@@ -251,11 +251,14 @@ export const PushNotifications = (): JSX.Element => {
   return (
     <div className=" min-h-screen w-full">
       {/* Sidebar */}
-            <div className="flex items-center justify-between mb-8">
-              <h1 className="text-2xl font-semibold text-gray-900">Push Notifications</h1>
+            <div className="flex items-center justify-between ">
+             <div className='mt-5 pb-5 mx-5'>
+            <h2 className='text-[32px] font-semibold'>Push Notifications</h2>
+   
+</div>
               <Button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+                className="bg-[#343F4F] hover:bg-gray-900 text-white px-4 py-5 rounded-lg flex items-center space-x-2"
               >
                 <Plus className="w-4 h-4" />
                 <span>Create Notification</span>
@@ -263,7 +266,7 @@ export const PushNotifications = (): JSX.Element => {
             </div>
 
       {/* Main Content */}
-      <div className="mt-5">
+      <div className="">
         {/* Header */}
 
 

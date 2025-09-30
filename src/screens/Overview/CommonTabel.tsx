@@ -111,21 +111,21 @@ export default  function Leaderboard() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-slate-700 text-white">
-                <th className="px-4 py-3 text-left font-medium">Rank</th>
-                <th className="px-4 py-3 text-left font-medium">User</th>
-                <th className="px-4 py-3 text-left font-medium">Level</th>
-                <th className="px-4 py-3 text-left font-medium">Points</th>
-                <th className="px-4 py-3 text-left font-medium">Badges</th>
-                <th className="px-4 py-3 text-left font-medium">Streak</th>
-                <th className="px-4 py-3 text-left font-medium">Actions</th>
+              <tr className="bg-slate-700 text-[20px] text-white">
+                <th className="px-4 py-3 text-left font-normal">Rank</th>
+                <th className="px-4 py-3 text-left font-normal">User</th>
+                <th className="px-4 py-3 text-left font-normal">Level</th>
+                <th className="px-4 py-3 text-left font-normal">Points</th>
+                <th className="px-4 py-3 text-left font-normal">Badges</th>
+                <th className="px-4 py-3 text-left font-normal">Streak</th>
+                <th className="px-4 py-3 text-left font-normal">Actions</th>
               </tr>
             </thead>
             <tbody>
               {currentUsers.map((user, index) => (
                 <tr
                   key={user.id}
-                  className={`border-b border-border ${
+                  className={`border-b font-bold border-border ${
                     index % 2 === 0 ? "bg-white" : "bg-gray-50"
                   } hover:bg-gray-100 transition-colors`}
                 >
@@ -143,7 +143,7 @@ export default  function Leaderboard() {
                             target.nextElementSibling!.classList.remove("hidden")
                           }}
                         />
-                        <span className="hidden text-xs font-medium text-gray-600">
+                        <span className="hidden text-xs font-bold ">
                           {user.name
                             .split(" ")
                             .map((n) => n[0])
@@ -160,7 +160,7 @@ export default  function Leaderboard() {
                   <td className="px-4 py-3">
                     <button
                       onClick={() => handleDelete(user.id)}
-                      className="px-3 py-1 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                      className="px-4 py-1 text-sm font-medium text-white bg-[#AC2927] hover:bg-red-700 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                     >
                       Delete
                     </button>
@@ -192,7 +192,7 @@ export default  function Leaderboard() {
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
                   className={`h-8 w-8 flex items-center justify-center text-sm rounded transition-colors ${
-                    currentPage === pageNum ? "bg-blue-600 text-white" : "border border-gray-300 hover:bg-gray-50"
+                    currentPage === pageNum ? "bg-[#343F4F] text-white" : "border border-gray-300 hover:bg-gray-50"
                   }`}
                 >
                   {pageNum}

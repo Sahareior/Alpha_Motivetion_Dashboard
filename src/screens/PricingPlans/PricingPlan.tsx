@@ -103,15 +103,15 @@ export function PricingPlans() {
   ]
 
   return (
-    <div className="w-full mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-foreground mb-2">Subscriptions & Payments</h1>
-      </div>
+    <div className="w-full mx-auto ">
+ <div className='mt-5 pb-5 mx-5'>
+            <h2 className='text-[32px] font-semibold'>Subscriptions & Payments</h2>
+</div>
 
-      <div className="rounded-lg p-6" style={{
+      <div className="rounded-lg mt-4 p-6" style={{
         boxShadow: '0px 0px 10px 0px #0000001A'
       }}>
-        <h2 className="text-[25px] pb-5 text-foreground">Subscriptions</h2>
+        <h2 className="text-[25px] pb-5 font-semibold text-foreground">Subscriptions</h2>
         <div className="grid grid-cols-4 gap-6">
           {plans.map((plan, index) => (
             <div

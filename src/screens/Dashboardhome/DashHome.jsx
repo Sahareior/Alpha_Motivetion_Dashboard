@@ -32,8 +32,8 @@ const DashHome = () => {
         <div>
 
 <div className='my-9 mx-5'>
-            <h2 className='text-[32px]'>Dashboard</h2>
-          <p className='text-[20px]'>Welcome back, Sijan</p>
+            <h2 className='text-[32px] font-semibold'>Dashboard</h2>
+          <p className='text-[20px] font-normal'>Welcome back, Sijan</p>
 </div>
                     <div className=" grid grid-cols-4 gap-4 justify-items-center">
                       {metricCards.map((card, index) => (
@@ -46,7 +46,7 @@ const DashHome = () => {
                               <div className="[font-family:'SF_Pro-Medium',Helvetica] font-medium text-[#353535] text-xl tracking-[0] leading-[normal]">
                                 {card.title}
                               </div>
-                              <div className="[font-family:'SF_Pro-Semibold',Helvetica] font-normal text-[#303030] text-[32px] tracking-[0] leading-[normal] whitespace-nowrap">
+                              <div className="[font-family:'SF_Pro-Semibold',Helvetica] font-semibold text-[#303030] text-[32px] tracking-[0] leading-[normal] whitespace-nowrap">
                                 {card.value}
                               </div>
                             </div>

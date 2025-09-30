@@ -1,7 +1,8 @@
-"use client"
-
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // ← ADD THIS IMPORT
+import Swal from "sweetalert2";
 
 const CommonModal = ({
   isOpen,
@@ -35,6 +36,8 @@ const CommonModal = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const notify = () => toast.success("Changes saved successfully!"); // ← Better toast with type
+
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     handleChange('icon', file);
@@ -42,6 +45,14 @@ const CommonModal = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    Swal.fire({
+  position: "top-center",
+  icon: "success",
+  title: "Your work has been saved",
+  showConfirmButton: false,
+  timer: 1500
+});
+
     onSave(formData);
     onClose();
   };
@@ -111,8 +122,38 @@ const CommonModal = ({
             type: "textarea",
             placeholder: "Enter category description",
             rows: 3
+          },
+            {
+            name: "icon",
+            label: "Icon",
+            type: "file"
           }
         ];
+
+        case 'edit-profile':
+            return [
+                
+                     {
+            name: "name",
+            label: "Name",
+            type: "text",
+            placeholder: "Enter Full name"
+          },
+
+           {
+            name: "name",
+            label: "Email",
+            type: "text",
+            placeholder: "Enter Email Address"
+          },
+
+                      {
+            name: "icon",
+            label: "Icon",
+            type: "file"
+          }
+                
+            ]
       
       default:
         return [];
@@ -123,6 +164,20 @@ const CommonModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      {/* Toast Container with proper configuration */}
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      
       <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
@@ -137,7 +192,7 @@ const CommonModal = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {fields.map((field) => (
             <div key={field.name}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xl font-medium text-gray-700 mb-2">
                 {field.label}
               </label>
 
@@ -164,14 +219,17 @@ const CommonModal = ({
               )}
 
               {field.type === "file" && (
-                <div>
+                <div className="w-full">
                   <input
                     type="file"
                     onChange={handleFileChange}
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                    className="w-full text-sm text-gray-500 border border-black rounded-md 
+                             file:mr-4 file:py-2 file:px-4 file:rounded-md file:text-sm 
+                             file:font-semibold file:bg-[#343F4F] file:text-white 
+                             hover:cursor-pointer"
                   />
                   {formData.icon && (
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-gray-600 mt-1 hover:cursor-pointer">
                       Selected: {formData.icon.name}
                     </p>
                   )}

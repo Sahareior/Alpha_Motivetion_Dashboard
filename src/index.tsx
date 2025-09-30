@@ -11,45 +11,30 @@ import Overview from "./screens/Overview/Overview";
 import { PricingPlans } from "./screens/PricingPlans/PricingPlan";
 import { PushNotifications } from "./screens/PushNotifications/PushNotifications";
 import AlphaSettings from './screens/settings/AlphaSettings';
-
+import Login from "./screens/auth/Login";
 
 
 const router = createBrowserRouter([
   {
+    path: "/login",
+    element: <Login />,
+  },
+  {
     path: "/",
     element: <App />,
     children: [
-      {
-        path: '/',
-        element: <DashHome />
-      },
-      {
-        path: 'user-management',
-        element: <UserManagement />
-      },
-      {
-        path: 'overview',
-        element: <Overview />
-      },
-      {
-        path: 'notification',
-        element: <PushNotifications />
-      },
-      {
-        path: 'settings',
-        element: <AlphaSettings />
-      },
-      {
-        path: 'plans',
-        element: <PricingPlans />
-      }
-    ]
+      { path: "/", element: <DashHome /> },
+      { path: "user-management", element: <UserManagement /> },
+      { path: "overview", element: <Overview /> },
+      { path: "notification", element: <PushNotifications /> },
+      { path: "settings", element: <AlphaSettings /> },
+      { path: "plans", element: <PricingPlans /> },
+    ],
   },
-
 ]);
 
 createRoot(document.getElementById("app") as HTMLElement).render(
   <StrictMode>
-      <RouterProvider router={router} />
-  </StrictMode>,
+    <RouterProvider router={router} />
+  </StrictMode>
 );

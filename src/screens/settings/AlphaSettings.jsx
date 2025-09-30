@@ -7,7 +7,7 @@ const AlphaSettings = () => {
 
   return (
     <div>
-      <div className="flex mx-6 my-6 gap-7">
+      <div className="flex mx-6 my-6 font-medium gap-7">
         <p
           onClick={() => setClicked(1)}
           className={`${clicked === 1 ? 'text-blue-500' : 'text-black'} text-[32px] cursor-pointer`}

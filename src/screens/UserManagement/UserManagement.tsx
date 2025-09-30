@@ -3,6 +3,8 @@ import { MoveHorizontal as MoreHorizontal, ChevronLeft, ChevronRight } from "luc
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { BsThreeDotsVertical } from "react-icons/bs";
+import { FiTrash2, FiUserCheck, FiUserX } from "react-icons/fi";
+import Swal from "sweetalert2";
 
 interface User {
   id: string;
@@ -162,60 +164,87 @@ const TypeBadge = ({ type }: { type: User["type"] }) => {
   );
 };
 
-const ActionMenu = ({ onAction }: { onAction: (action: string) => void }) => {
+const ActionMenu = ({
+  onAction,
+  handelAlert
+}: { onAction: (action: string) => void, handelAlert: () => void }) => {
   const [isOpen, setIsOpen] = useState(false);
 
+
   return (
-    <div className="relative">
+    <div className="relative inline-block text-left">
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
         className="h-8 w-8 p-0"
       >
         <BsThreeDotsVertical className="h-4 w-4" />
       </Button>
-      
+
       {isOpen && (
         <>
-          <div 
-            className="fixed inset-0 z-10" 
+          {/* Overlay for outside click - placed BEHIND the menu */}
+          <div
+            className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 top-8 z-20 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1">
-            <button
-              onClick={() => {
-                onAction("suspend");
-                setIsOpen(false);
-              }}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-            >
-              Suspend Account
-            </button>
-            <button
-              onClick={() => {
-                onAction("activate");
-                setIsOpen(false);
-              }}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-            >
-              Activate Account
-            </button>
-            <button
-              onClick={() => {
-                onAction("delete");
-                setIsOpen(false);
-              }}
-              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50"
-            >
-              Delete Account
-            </button>
+          
+          {/* Menu with higher z-index */}
+          <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-md shadow-lg border border-gray-200 z-50">
+            <div className="py-1 bg-[#343F4F] rounded-md flex flex-col">
+              {/* Suspend */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handelAlert()
+                  onAction("suspend");
+                  setIsOpen(false);
+                }}
+                className="flex items-center gap-3 w-full px-4 py-2 text-left text-sm text-white hover:bg-gray-600 transition-colors duration-200"
+              >
+                <FiUserX className="text-yellow-400" size={18} />
+                Suspend Account
+              </button>
+
+              {/* Activate */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handelAlert()
+                  onAction("activate");
+                  setIsOpen(false);
+                }}
+                className="flex items-center gap-3 w-full px-4 py-2 text-left text-sm text-white hover:bg-gray-600 transition-colors duration-200"
+              >
+                <FiUserCheck className="text-green-400" size={18} />
+                Activate Account
+              </button>
+
+              {/* Delete */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handelAlert()
+                  onAction("delete");
+                  setIsOpen(false);
+                }}
+                className="flex items-center gap-3 w-full px-4 py-2 text-left text-sm text-red-500 hover:bg-gray-600 transition-colors duration-200"
+              >
+                <FiTrash2 className="text-red-500" size={18} />
+                Delete Account
+              </button>
+            </div>
           </div>
         </>
       )}
     </div>
   );
 };
+
 
 export const UserManagement = (): JSX.Element => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -226,21 +255,24 @@ export const UserManagement = (): JSX.Element => {
     console.log(`Action ${action} for user ${userId}`);
   };
 
+  const handelAlert =()=>{
+        Swal.fire({
+      position: "top-center",
+      icon: "success",
+      title: "Your work has been saved",
+      showConfirmButton: false,
+      timer: 1500
+    });
+  }
+
   return (
-    <div className=" min-h-screen w-full">
-      {/* Sidebar */}
-
-
+    <div className="min-h-screen w-full">
       {/* Main Content */}
       <div className="">
-        {/* Header */}
-        <div className="flex items-center justify-between ">
- 
-    
-        </div>
-
-        {/* User Management Card */}
-            <h1 className="text-2xl font-semibold text-gray-900 mb-8">User Management</h1>
+      <div className='mt-5 pb-5 mx-5'>
+            <h2 className='text-[32px] font-semibold'>User Management</h2>
+      
+</div>
         <Card className="">
           <CardContent className="p-8">
             
@@ -310,9 +342,14 @@ export const UserManagement = (): JSX.Element => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {user.level}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <ActionMenu onAction={(action) => handleAction(user.id, action)} />
-                        </td>
+                       <td className="px-6 py-4 whitespace-nowrap relative">
+  <ActionMenu 
+  onAction={(action) => handleAction(user.id, action)} 
+  handelAlert={handelAlert} 
+/>
+
+</td>
+
                       </tr>
                     ))}
                   </tbody>

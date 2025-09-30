@@ -1,6 +1,4 @@
-
-
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
 
 const userActivityData = [
   { day: "Mon", freeUsers: 45, premiumUsers: 30 },
@@ -21,8 +19,8 @@ const subscriptionData = [
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-        <p className="text-foreground font-medium">{label}</p>
+      <div className=" text-white border bg-[#343F4F] border-border rounded-lg p-3 shadow-lg">
+        <p className="text-foreground text-white font-medium">{label}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} className="text-sm" style={{ color: entry.color }}>
             {entry.dataKey === "freeUsers" ? "Free Users" : "Premium Users"}: {entry.value}
@@ -38,9 +36,9 @@ const PieTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0]
     return (
-      <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-        <p className="text-foreground font-medium">{data.name}</p>
-        <p className="text-sm text-muted-foreground">{data.value}%</p>
+      <div className="text-white border bg-[#343F4F]  border-border rounded-lg p-3 shadow-lg">
+        <p className="text-foreground text-white font-medium">{data.name}</p>
+        <p className="text-sm text-muted-foreground text-yellow-400">{data.value}%</p>
       </div>
     )
   }
@@ -56,43 +54,52 @@ export function AnalyticsDashboard() {
           boxShadow: '0px 0px 10px 0px #0000001A'
 
         }}>
-          <div className="p-6 pb-4">
-            <h3 className="text-foreground text-lg font-semibold mb-4">User Activity</h3>
-            <div className="flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-chart-2 rounded-sm"></div>
-                <span className="text-muted-foreground">Free Users</span>
+          <div className="p-6 flex justify-between items-center pb-4">
+            <h3 className="text-foreground text-[32px] font-semibold ">User Activity</h3>
+            <div className="flex items-center justify-end gap-6 text-sm">
+              <div className="flex items-center  gap-2">
+                <div className="w-3 h-3 bg-chart-2 bg-[#8C9FBA] rounded-sm"></div>
+                <span className="text-muted-foreground text-[#303030] text-[16px]">Free Users</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-chart-1 rounded-sm"></div>
-                <span className="text-muted-foreground">Premium Users</span>
+                <div className="w-3 h-3 bg-chart-1 bg-[#343F4F] rounded-sm"></div>
+                <span className="text-muted-foreground text-[#303030] text-[16px]">Premium Users</span>
               </div>
             </div>
           </div>
-          <div className="px-6 pb-6">
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={userActivityData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <XAxis
-                    dataKey="day"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                    domain={[0, 100]}
-                    ticks={[0, 15, 30, 45, 60, 75]}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="freeUsers" fill="hsl(var(--chart-2))" radius={[2, 2, 0, 0]} />
-                  <Bar dataKey="premiumUsers" fill="hsl(var(--chart-1))" radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+<div className="px-6 pb-6">
+  <div className="h-80">
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={userActivityData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+        <XAxis
+          dataKey="day"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+        />
+        <YAxis
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+          domain={[0, 100]}
+          ticks={[0, 15, 30, 45, 60, 75]}
+        />
+        {/* Custom horizontal grid lines with big dashes */}
+        <CartesianGrid 
+          horizontal={true} 
+          vertical={false}
+          stroke="hsl(var(--muted-foreground))"
+          strokeDasharray="8 6" // Bigger dashes: 8px dash, 6px gap
+          strokeWidth={1.5} // Thicker lines
+          opacity={0.6}
+        />
+        <Tooltip content={<CustomTooltip />} />
+        <Bar dataKey="freeUsers" fill="#8C9FBA" radius={[2, 2, 0, 0]} />
+        <Bar dataKey="premiumUsers" fill="#343F4F" radius={[2, 2, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+</div>
         </div>
 
         {/* Subscription Distribution Chart */}
@@ -100,7 +107,7 @@ export function AnalyticsDashboard() {
            boxShadow: '0px 0px 10px 0px #0000001A'
         }}>
           <div className="p-6 pb-4">
-            <h3 className="text-foreground text-lg font-semibold">Subscription Distribution</h3>
+            <h3 className="text-foreground text-[32px]  font-semibold">Subscription Distribution</h3>
           </div>
           <div className="px-6 pb-6">
             <div className="h-80">

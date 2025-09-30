@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Bell, Plus, CreditCard as Edit, Trash2, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
-import { FaRegEdit } from "react-icons/fa";
+import { FaCalendar, FaClock, FaRegEdit } from "react-icons/fa";
 
 interface Notification {
   id: string;
@@ -62,14 +62,14 @@ const mockNotifications: Notification[] = [
   }
 ];
 
-const StatusBadge = ({ status }: { status: Notification["status"] }) => {
+const StatusBadge = ({ user }: { user: Notification["user"] }) => {
   const getStatusStyles = () => {
-    switch (status) {
-      case "Active":
+    switch (user) {
+      case "Premium Users":
         return "bg-green-100 text-green-800 border-green-200";
-      case "Scheduled":
+      case "All Users":
         return "bg-blue-100 text-blue-800 border-blue-200";
-      case "Draft":
+      case "Free Users":
         return "bg-gray-100 text-gray-800 border-gray-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
@@ -78,7 +78,7 @@ const StatusBadge = ({ status }: { status: Notification["status"] }) => {
 
   return (
     <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusStyles()}`}>
-      {status}
+      {user}
     </span>
   );
 };
@@ -278,7 +278,7 @@ export const PushNotifications = (): JSX.Element => {
 
             {/* Scheduled Section */}
             <div className="mb-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Scheduled</h2>
+              <h2 className="text-[24px] font-semibold mb-4 text-[#000000]">Scheduled</h2>
               
               <div className="space-y-4">
                 {notifications.map((notification) => (
@@ -289,15 +289,15 @@ export const PushNotifications = (): JSX.Element => {
                           <div className="flex items-center space-x-3 mb-2">
                             <Bell className="w-5 h-5 text-gray-400" />
                             <h3 className="text-white font-medium">{notification.name}</h3>
-                            <StatusBadge status={notification.status} />
+                           
                           </div>
                           <p className="text-gray-300 text-sm mb-3 ml-8">
                             {notification.description}
                           </p>
                           <div className="flex items-center space-x-4 ml-8 text-xs text-gray-400">
-                            <span>{notification.date}</span>
-                            <span>{notification.time}</span>
-                            <span>{notification.user}</span>
+                            <span className="flex items-center gap-2"><FaCalendar /> {notification.date}</span>
+                            <span className="flex items-center gap-2"><FaClock /> {notification.time}</span>
+                             <StatusBadge user={notification.user} />
                           </div>
                         </div>
                         
@@ -308,7 +308,7 @@ export const PushNotifications = (): JSX.Element => {
                             onClick={() => openEditModal(notification)}
                             className="h-8 w-8 p-0  hover:text-white hover:bg-gray-600"
                           >
-                            <FaRegEdit  className="h-6 w-6" />
+                            <FaRegEdit   className="h-10 w-10" />
                           </Button>
                           <Button
                             variant="ghost"

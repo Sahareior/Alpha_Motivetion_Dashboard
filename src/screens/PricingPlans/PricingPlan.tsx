@@ -5,6 +5,7 @@ import Leaderboard from "../Overview/CommonTabel"
 import { FiEdit } from "react-icons/fi"
 import { FaRegEdit } from "react-icons/fa"
 import CommonModal from './../Overview/Modal/CommonModal';
+import TableSection from "../Overview/CommonTabel"
 
 interface PricingFeature {
   icon: string
@@ -186,7 +187,8 @@ export function PricingPlans() {
         } : {}}
       />
 
-      <Leaderboard />
+      <TableSection type="plan" />
+
     </div>
   )
 }

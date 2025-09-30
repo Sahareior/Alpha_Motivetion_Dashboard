@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { FaAward, FaTrash } from "react-icons/fa";
+import { FaAward, FaEdit, FaRegEdit, FaTrash } from "react-icons/fa";
 import { FiEdit3 } from "react-icons/fi";
 import CommonModal from "./Modal/CommonModal";
 import Leaderboard from "./CommonTabel";
 import { AiOutlineMenu } from "react-icons/ai";
+import TableSection from "./CommonTabel";
+import Swal from "sweetalert2";
 
 const Overview = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -39,6 +41,27 @@ const Overview = () => {
     setEditingItem(category);
     setModalOpen(true);
   };
+
+
+const handelDelete = () => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "This action cannot be undone!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete it!",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // 👉 Place your delete logic here (API call, state update, etc.)
+      console.log("Deleted!");
+
+      Swal.fire("Deleted!", "Your item has been removed.", "success");
+    }
+  });
+};
+
 
   const handleSave = (data) => {
     console.log("Saving data:", data);
@@ -94,11 +117,12 @@ const MotivetionCard = ({ item, type, onEdit }) => (
         <h2>{item.name}</h2>
       </div>
       <div className="flex items-center gap-4">
-        <FiEdit3
+        <FaRegEdit
+        size={18} 
           className="text-white cursor-pointer"
           onClick={() => onEdit(item)}
         />
-        <FaTrash className="text-white cursor-pointer" />
+        <FaTrash onClick={()=> handelDelete()} size={18} className="text-white cursor-pointer" />
       </div>
     </div>
     <p className="mt-2 w-[80%] text-start">{item.description}</p>
@@ -167,7 +191,8 @@ const MotivetionCard = ({ item, type, onEdit }) => (
         </div>
       </div>
       <div>
-        <Leaderboard />
+        <TableSection type="leaderboard" />
+
       </div>
       {/* Reusable Modal */}
       <CommonModal

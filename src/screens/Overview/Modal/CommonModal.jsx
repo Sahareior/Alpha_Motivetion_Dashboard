@@ -15,6 +15,7 @@ const CommonModal = ({
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    email: "",
     cost: "",
     feature: "",
     icon: null,
@@ -25,6 +26,7 @@ const CommonModal = ({
     setFormData({
       name: "",
       description: "",
+      email: "",
       cost: "",
       feature: "",
       icon: null,
@@ -141,9 +143,9 @@ const CommonModal = ({
           },
 
            {
-            name: "name",
+            name: "email",
             label: "Email",
-            type: "text",
+            type: "email",
             placeholder: "Enter Email Address"
           },
 
@@ -199,6 +201,17 @@ const CommonModal = ({
               {field.type === "text" && (
                 <input
                   type="text"
+                  value={formData[field.name] || ""}
+                  onChange={(e) => handleChange(field.name, e.target.value)}
+                  placeholder={field.placeholder}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              )}
+
+              {field.type === "email" && (
+                <input
+                  type="email"
                   value={formData[field.name] || ""}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   placeholder={field.placeholder}

@@ -277,7 +277,7 @@ export const UserManagement = (): JSX.Element => {
           <CardContent className="p-8">
             
             <div className="mb-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Users</h2>
+              <h2 className="text-[24px] font-semibold text-[#000000] mb-5">Users</h2>
               
               {/* Table */}
               <div className="overflow-hidden rounded-lg border border-gray-200">

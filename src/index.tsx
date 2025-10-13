@@ -1,5 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+  import { Provider } from 'react-redux'
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -12,6 +14,9 @@ import { PricingPlans } from "./screens/PricingPlans/PricingPlan";
 import { PushNotifications } from "./screens/PushNotifications/PushNotifications";
 import AlphaSettings from './screens/settings/AlphaSettings';
 import Login from "./screens/auth/Login";
+import {store} from '../store/store.js'
+
+
 
 
 const router = createBrowserRouter([
@@ -35,6 +40,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("app") as HTMLElement).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <Provider store={store}>
+      <RouterProvider router={router} />
+    </Provider>
   </StrictMode>
 );

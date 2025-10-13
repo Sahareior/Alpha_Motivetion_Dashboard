@@ -1,13 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {useLoginDashboardMutation} from '../../../store/slices/apiSlice.js'
 
-const Login: React.FC = () => {
+
+const Login = () => {
   const navigate = useNavigate();
+  const [loginDashboard, { isLoading, error }] = useLoginDashboardMutation();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: add real auth check here
-    navigate("/"); // navigate to dashboard after login
+
+    try {
+      const response = await loginDashboard({ email, password }).unwrap();
+      // Assuming backend returns { token: "..." }
+      if (response) {
+        localStorage.setItem("token1212", response.data.access);
+        navigate("/"); // redirect to dashboard
+      } else {
+        alert("Invalid credentials or missing token");
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+      alert("Login failed. Please check your credentials.");
+    }
   };
 
   return (
@@ -15,11 +33,7 @@ const Login: React.FC = () => {
       <div className="bg-[#2c3b4a] rounded-lg border border-[#C1C1C1] shadow-lg p-10 w-[500px]">
         {/* Logo */}
         <div className="flex flex-col items-center mb-6">
-          <img
-            src="/lg.png"
-            alt="Logo"
-            className="w-28 h-24 mb-2"
-          />
+          <img src="/lg.png" alt="Logo" className="w-28 h-24 mb-2" />
           <h1 className="text-xl font-bold text-[#A6C5F3]">ALPHA</h1>
           <p className="text-gray-300 text-sm">Motivation</p>
         </div>
@@ -31,6 +45,8 @@ const Login: React.FC = () => {
             <input
               type="email"
               placeholder="admin@gmail.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 rounded-md bg-[#1d2733] text-gray-200 border border-[#C1C1C1] focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
@@ -40,6 +56,8 @@ const Login: React.FC = () => {
             <input
               type="password"
               placeholder="********"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 rounded-md bg-[#1d2733] text-gray-200 border border-[#C1C1C1] focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
@@ -57,10 +75,17 @@ const Login: React.FC = () => {
 
           <button
             type="submit"
+            disabled={isLoading}
             className="w-full bg-white text-black font-semibold py-2 rounded-md hover:bg-gray-200 transition"
           >
-            Log In
+            {isLoading ? "Logging in..." : "Log In"}
           </button>
+
+          {error && (
+            <p className="text-red-400 text-sm mt-2 text-center">
+              {error?.data?.message || "Invalid credentials"}
+            </p>
+          )}
         </form>
       </div>
     </div>

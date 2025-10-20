@@ -2,17 +2,25 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: 'http://10.10.13.36:8888',
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token1212') // get token from localStorage
-      console.log(token,'this is token')
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`)
-      }
-      return headers
-    },
-  }),
+baseQuery: fetchBaseQuery({
+  baseUrl: 'https://dc065a30f2f8.ngrok-free.app/', // 👈 use your API root, not the homepage
+  prepareHeaders: (headers) => {
+    // Add auth header
+    const token = localStorage.getItem('token1212');
+    if (token) {
+      headers.set('authorization', `Bearer ${token}`);
+    }
+
+    // ✅ Skip ngrok browser warning
+    headers.set('ngrok-skip-browser-warning', 'true');
+
+    // (Optional) Set custom User-Agent to skip warning too
+    headers.set('User-Agent', 'ReactNativeApp');
+
+    return headers;
+  },
+}),
+
   endpoints: (build) => ({
     // Example GET request
     getPokemonByName: build.query({
@@ -60,7 +68,15 @@ subsDist: build.query({
     }),
 
     userLists: build.query({
-      query: ()=> '/users/'
+      query: ()=> '/dashboard/users/'
+    }),
+
+    deactiveUser: build.mutation({
+      query: (data) => ({
+        url: "/dashboard/account/deactivate",
+      method:'POST',
+      body: data
+      })
     }),
 
     userDelete: build.mutation({
@@ -99,7 +115,7 @@ subsDist: build.query({
 // Export auto-generated hooks
 export const { useGetPokemonByNameQuery, useLoginDashboardMutation,
    useAllCategoriesQuery,useGetSubsQuery, useRevenuDataQuery,
-  useUserActivityQuery,useSubsDistQuery,
+  useUserActivityQuery,useSubsDistQuery,useDeactiveUserMutation,
   useDashboardStatsQuery, useDashboardLoginMutation,
   useDashBoardOverviewQuery,useDashboardGraphQuery,useUserListsQuery,
    useUserDeleteMutation,useCreateCategoryMutation } = pokemonApi

@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {useLoginDashboardMutation} from '../../../store/slices/apiSlice.js'
+import {useLoginDashboardMutation,useDashboardLoginMutation} from '../../../store/slices/apiSlice.js'
 
 
 const Login = () => {
   const navigate = useNavigate();
-  const [loginDashboard, { isLoading, error }] = useLoginDashboardMutation();
+  const [loginDashboard] = useLoginDashboardMutation();
+  const [dashboardLogin, {isLoading,error}] = useDashboardLoginMutation()
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,10 +15,10 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await loginDashboard({ email, password }).unwrap();
+      const response = await dashboardLogin({ email, password }).unwrap();
       // Assuming backend returns { token: "..." }
       if (response) {
-        localStorage.setItem("token1212", response.data.access);
+        localStorage.setItem("token1212", response.access);
         navigate("/"); // redirect to dashboard
       } else {
         alert("Invalid credentials or missing token");

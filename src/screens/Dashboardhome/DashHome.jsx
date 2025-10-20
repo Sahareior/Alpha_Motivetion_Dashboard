@@ -2,28 +2,33 @@ import React from 'react';
 import { Card, CardContent } from "../../components/ui/card";
 import RevenueTrend from './_components/RevenewTrends';
 import { AnalyticsDashboard } from './_components/AnalyticsDashboard';
+import { useDashBoardOverviewQuery, useDashboardStatsQuery } from '../../../store/slices/apiSlice';
 
 
 const DashHome = () => {
+const {data:dashboardStats} =  useDashBoardOverviewQuery()
+const {data: newStats} = useDashboardStatsQuery()
+
+console.log(newStats,'this is stats')
       const metricCards = [
     {
       title: "Total Revenue",
-      value: "$54,350",
+      value: newStats?.total_revenue,
       icon: "/group-3.png",
     },
     {
       title: "Total Users",
-      value: "8,249",
+      value: newStats?.total_users,
       icon: "/group-3-1.png",
     },
     {
       title: "Active Users",
-      value: "5,248",
+      value: newStats?.total_active_users,
       icon: "/group-3-2.png",
     },
     {
       title: "Premium Conversion",
-      value: "24.8%",
+      value: newStats?.premium_conversion_percentage,
       icon: "/group-3-3.png",
     },
   ];

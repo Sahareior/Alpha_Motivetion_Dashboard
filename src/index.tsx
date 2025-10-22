@@ -15,6 +15,7 @@ import { PushNotifications } from "./screens/PushNotifications/PushNotifications
 import AlphaSettings from './screens/settings/AlphaSettings';
 import Login from "./screens/auth/Login";
 import {store} from '../store/store.js'
+import PrivateRoute from './Routes/PrivateRoute';
 
 
 
@@ -26,7 +27,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/",
-    element: <App />,
+    element:(
+      <PrivateRoute>
+         <App />
+      </PrivateRoute>
+    ),
     children: [
       { path: "/", element: <DashHome /> },
       { path: "user-management", element: <UserManagement /> },

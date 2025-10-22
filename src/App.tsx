@@ -20,9 +20,22 @@ import { SlBadge } from "react-icons/sl";
 import { LuCrown } from "react-icons/lu";
 import { ImExit } from "react-icons/im";
 import CommonModal from './screens/Overview/Modal/CommonModal';
+// import {useProfileQuery} from '../store/slices/apiSlice.js'
 import Swal from "sweetalert2";
+import {useUpdateProfileMutation,useProfileQuery} from '../store/slices/apiSlice.js'
+
 
 const { Header, Sider, Content } = Layout;
+
+interface UserInfo {
+  city:string,
+  date_of_birth:string,
+  email:string,
+  first_name:string,
+  phone:string,
+  profile_photo:string
+}
+
 
 const App: React.FC = () => {
   const [collapsed, setCollapsed] = useState(true);
@@ -31,6 +44,32 @@ const App: React.FC = () => {
   const [modalType, setModalType] = useState("");
   const [modalTitle, setModalTitle] = useState("");
   const [editingItem, setEditingItem] = useState(null);
+  const { data } = useProfileQuery<UserInfo>();
+  const [updateProfile] = useUpdateProfileMutation()
+
+  console.log(data)
+
+const handelProfileUpdate = async (data) => {
+  try {
+    const formData = new FormData();
+    formData.append("first_name", data?.name || "");
+
+    if (data?.icon instanceof File) {
+      formData.append("profile_photo", data.icon);
+    }
+
+    const res = await updateProfile(formData).unwrap();
+
+    console.log(res, "Profile update response");
+    Swal.fire("Success!", "Profile updated successfully!", "success");
+    setModalOpen(false);
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    Swal.fire("Error!", "Failed to update profile.", "error");
+  }
+};
+
+
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -53,6 +92,7 @@ const App: React.FC = () => {
     confirmButtonText: "Yes, Absolutely"
   }).then((result) => {
     if (result.isConfirmed) {
+      localStorage.removeItem('token1212')
       navigate("/login");
     }
   });
@@ -167,7 +207,7 @@ const App: React.FC = () => {
             </p>
             <img
               onClick={handleCreateBadge}
-              src="https://images.unsplash.com/photo-1728577740843-5f29c7586afe?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+              src={data?.profile_photo}
               className="w-10 h-10 rounded-full cursor-pointer"
               alt=""
             />
@@ -187,7 +227,9 @@ const App: React.FC = () => {
         </Content>
       </Layout>
       <CommonModal
+      data ={data}
         isOpen={modalOpen}
+           onSave={handelProfileUpdate}
         onClose={() => setModalOpen(false)}
         title={modalTitle}
         type={modalType}

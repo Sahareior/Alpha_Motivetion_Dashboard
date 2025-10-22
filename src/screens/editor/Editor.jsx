@@ -5,7 +5,7 @@ import React, {
   useLayoutEffect,
   useRef,
 } from "react";
-import "quill/dist/quill.snow.css"; // ✅ Styling
+import "quill/dist/quill.snow.css";
 import "./editor.css";
 
 const Editor = forwardRef(
@@ -19,6 +19,23 @@ const Editor = forwardRef(
       onTextChangeRef.current = onTextChange;
       onSelectionChangeRef.current = onSelectionChange;
     });
+
+    // Extract content from nested structure
+    const extractContent = (data) => {
+      if (!data) return "";
+      
+      // If data has a 'text' property, use that
+      if (typeof data === 'object' && data.text) {
+        return data.text;
+      }
+      
+      // If data is already a string, use it directly
+      if (typeof data === 'string') {
+        return data;
+      }
+      
+      return "";
+    };
 
     useEffect(() => {
       const container = containerRef.current;
@@ -37,16 +54,14 @@ const Editor = forwardRef(
       }
 
       // ✅ Handle both Delta and HTML
-      if (defaultValueRef.current) {
-        if (typeof defaultValueRef.current === "string") {
+      const content = extractContent(defaultValueRef.current);
+      if (content) {
+        if (typeof content === "string") {
           // HTML string → insert into editor
-          quill.clipboard.dangerouslyPasteHTML(
-            0,
-            defaultValueRef.current
-          );
+          quill.clipboard.dangerouslyPasteHTML(0, content);
         } else {
           // Assume Delta object
-          quill.setContents(defaultValueRef.current);
+          quill.setContents(content);
         }
       }
 

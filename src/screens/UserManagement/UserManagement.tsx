@@ -3,9 +3,10 @@ import { MoveHorizontal as MoreHorizontal, ChevronLeft, ChevronRight } from "luc
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { FiTrash2, FiUserCheck, FiUserX } from "react-icons/fi";
+import { FiTrash2, FiUserCheck, FiUserX, FiEdit } from "react-icons/fi";
+import { Toaster, toast } from 'sonner';
 import Swal from "sweetalert2";
-import { useUserListsQuery,useDeactiveUserMutation } from "../../../store/slices/apiSlice.js";
+import { useUserListsQuery,useUpdatePlanTypeMutation,useLazySuspendUserQuery,useDeleteDashUserMutation,useLazyReactiveUserQuery } from "../../../store/slices/apiSlice.js";
 
 interface User {
   id: string;
@@ -71,11 +72,157 @@ const TypeBadge = ({ type }: { type: User["type"] }) => {
   );
 };
 
+// New Subscription Type Dropdown Component
+const SubscriptionDropdown = ({
+  currentType,
+  userId,
+  onUpdate,
+  handelAlert
+}: {
+  currentType: User["type"];
+  userId: string;
+  onUpdate: () => void;
+  handelAlert: (message: string) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [updatePlanType] = useUpdatePlanTypeMutation();
+
+  const subscriptionTypes = [
+    { value: "monthly", label: "Monthly" },
+    { value: "yearly", label: "Yearly" },
+    { value: "lifetime", label: "Lifetime" }
+  ];
+
+  const handleSubscriptionChange = async (subscriptionType: string) => {
+    try {
+      await updatePlanType({
+        subscription_type: subscriptionType,
+        user_id: parseInt(userId)
+      }).unwrap();
+
+      handelAlert(`Subscription updated to ${subscriptionType}`);
+      onUpdate();
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Failed to update subscription:", error);
+      handelAlert("Failed to update subscription");
+    }
+  };
+
+  return (
+    <div className="relative inline-block text-left">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        className="h-8 w-8 p-0"
+      >
+        <FiEdit className="h-4 w-4" />
+      </Button>
+
+      {isOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setIsOpen(false)}
+          />
+          
+          <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md shadow-lg border border-gray-200 z-50 bg-[#343F4F]">
+            <div className="py-1 rounded-md flex flex-col">
+              <div className="px-3 py-2 text-xs text-gray-300 border-b border-gray-600">
+                Change Plan
+              </div>
+              {subscriptionTypes.map((type) => (
+                <button
+                  key={type.value}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSubscriptionChange(type.value);
+                  }}
+                  className="flex items-center gap-3 w-full px-4 py-2 text-left text-sm text-white hover:bg-gray-600 transition-colors duration-200"
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 const ActionMenu = ({
   onAction,
-  handelAlert
-}: { onAction: (action: string) => void, handelAlert: () => void }) => {
+  handelAlert,
+  userId,
+  refetch
+}: { 
+  onAction: (action: string) => void; 
+  handelAlert: (message: string) => void;
+  userId: string; 
+  refetch: () => void;
+}) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [suspendUser] = useLazySuspendUserQuery();
+  const [reactiveUser] = useLazyReactiveUserQuery();
+  const [deleteDashUser] = useDeleteDashUserMutation();
+
+  const handleSuspend = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await suspendUser(userId).unwrap();
+      handelAlert("User is Suspended!");
+      onAction("suspend");
+      refetch();
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Failed to suspend user:", error);
+      Swal.fire({
+        position: "top-center",
+        icon: "error",
+        title: "Failed to suspend user",
+        showConfirmButton: false,
+        timer: 1500
+      });
+    }
+  };
+
+  const handleActive = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await reactiveUser(userId).unwrap();
+      handelAlert('User Activated Successfully');
+      onAction("activate");
+      refetch();
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Failed to active user:", error);
+      Swal.fire({
+        position: "top-center",
+        icon: "error",
+        title: "Failed to activate user",
+        showConfirmButton: false,
+        timer: 1500
+      });
+    }
+  };
+
+  const handelDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await deleteDashUser(userId).unwrap();
+      handelAlert('User deleted successfully');
+      refetch();
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      handelAlert("Failed to delete user");
+    }
+  };
 
   return (
     <div className="relative inline-block text-left">
@@ -93,50 +240,31 @@ const ActionMenu = ({
 
       {isOpen && (
         <>
-          
           <div
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
           
-         
           <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-md shadow-lg border border-gray-200 z-50 bg-[#343F4F]">
             <div className="py-1 rounded-md flex flex-col">
-                <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handelAlert()
-                  onAction("suspend");
-                  setIsOpen(false);
-                }}
+              <button
+                onClick={handleSuspend}
                 className="flex items-center gap-3 w-full px-4 py-2 text-left text-sm text-white hover:bg-gray-600 transition-colors duration-200"
               >
                 <FiUserX className="text-yellow-400" size={18} />
                 Suspend Account
               </button>
 
-       
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handelAlert()
-                  onAction("activate");
-                  setIsOpen(false);
-                }}
+                onClick={handleActive}
                 className="flex items-center gap-3 w-full px-4 py-2 text-left text-sm text-white hover:bg-gray-600 transition-colors duration-200"
               >
                 <FiUserCheck className="text-green-400" size={18} />
                 Activate Account
               </button>
 
-          
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handelAlert()
-                  onAction("delete");
-                  setIsOpen(false);
-                }}
+                onClick={handelDelete}
                 className="flex items-center gap-3 w-full px-4 py-2 text-left text-sm text-red-500 hover:bg-gray-600 transition-colors duration-200"
               >
                 <FiTrash2 className="text-red-500" size={18} />
@@ -150,21 +278,16 @@ const ActionMenu = ({
   );
 };
 
-
 const transformApiUserToUser = (apiUser: ApiUser): User => {
-
   const getAvatar = (firstName: string, email: string): string => {
     if (firstName && firstName.trim() !== "" && firstName !== "string") {
       return firstName.substring(0, 2).toUpperCase();
     }
-
     return email.substring(0, 2).toUpperCase();
   };
 
-  
   const getStatus = (isActive: boolean, lastActivity: string | null): User["status"] => {
     if (!isActive) return "Suspended";
-
     if (!lastActivity) return "Inactive";
     return "Active";
   };
@@ -187,9 +310,7 @@ const transformApiUserToUser = (apiUser: ApiUser): User => {
 export const UserManagement = (): JSX.Element => {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
-  const [deactiveUser] = useDeactiveUserMutation()
-  const { data: apiResponse, isLoading, error } = useUserListsQuery();
-  
+  const { data: apiResponse, isLoading, error, refetch } = useUserListsQuery();
 
   const users: User[] = apiResponse?.results 
     ? apiResponse.results.map(transformApiUserToUser)
@@ -200,20 +321,16 @@ export const UserManagement = (): JSX.Element => {
 
   const handleAction = (userId: string, action: string) => {
     console.log(`Action ${action} for user ${userId}`);
-
   };
 
-  const handelAlert = () => {
-    Swal.fire({
-      position: "top-center",
-      icon: "success",
-      title: "Your work has been saved",
-      showConfirmButton: false,
-      timer: 1500
-    });
+  const handelAlert = (text: string) => {
+    toast(text);
   };
 
- 
+  const handleSubscriptionUpdate = () => {
+    refetch(); // Refresh the user list after subscription update
+  };
+
   const startIndex = (currentPage - 1) * usersPerPage;
   const endIndex = startIndex + usersPerPage;
   const currentUsers = users.slice(startIndex, endIndex);
@@ -236,6 +353,7 @@ export const UserManagement = (): JSX.Element => {
 
   return (
     <div className="min-h-screen w-full">
+      <Toaster />
       {/* Main Content */}
       <div className="">
         <div className='mt-5 pb-5 mx-5'>
@@ -247,7 +365,6 @@ export const UserManagement = (): JSX.Element => {
             <div className="mb-6">
               <h2 className="text-[24px] font-semibold text-[#000000] mb-5">Users</h2>
               
-        
               <div className="overflow-hidden rounded-lg border border-gray-200">
                 <div className="min-h-[50vh] overflow-auto">
                   <table className="w-full relative">
@@ -300,7 +417,15 @@ export const UserManagement = (): JSX.Element => {
                             <StatusBadge status={user.status} />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <TypeBadge type={user.type} />
+                            <div className="flex items-center gap-2">
+                              <TypeBadge type={user.type} />
+                              <SubscriptionDropdown
+                                currentType={user.type}
+                                userId={user.id}
+                                onUpdate={handleSubscriptionUpdate}
+                                handelAlert={handelAlert}
+                              />
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {user.joinDate}
@@ -311,10 +436,12 @@ export const UserManagement = (): JSX.Element => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {user.level}
                           </td>
-                         <td className="px-6 py-4 whitespace-nowrap relative">
+                          <td className="px-6 py-4 whitespace-nowrap relative">
                             <ActionMenu 
                               onAction={(action) => handleAction(user.id, action)} 
+                              refetch={refetch}
                               handelAlert={handelAlert} 
+                              userId={user.id}
                             />
                           </td>
                         </tr>
@@ -324,7 +451,6 @@ export const UserManagement = (): JSX.Element => {
                 </div>
               </div>
 
-           
               <div className="flex items-center justify-between mt-6">
                 <div className="text-sm text-gray-700">
                   Showing {startIndex + 1} to {Math.min(endIndex, totalUsers)} of {totalUsers} users

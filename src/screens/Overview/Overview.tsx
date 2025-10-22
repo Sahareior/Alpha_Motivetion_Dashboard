@@ -6,12 +6,18 @@ import Leaderboard from "./CommonTabel";
 import { AiOutlineMenu } from "react-icons/ai";
 import TableSection from "./CommonTabel";
 import Swal from "sweetalert2";
+import {useGetBadgesQuery,useCreateBadgesMutation} from '../../../store/slices/apiSlice.js'
 
 const Overview = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTitle, setModalTitle] = useState("");
   const [editingItem, setEditingItem] = useState(null);
+  const {data:allbadges} = useGetBadgesQuery()
+  const [createBadges] = useCreateBadgesMutation()
+
+
+  console.log(editingItem,'badges')
 
   const handleCreateBadge = () => {
     setModalType("badge-create");
@@ -63,7 +69,7 @@ const handelDelete = () => {
 };
 
 
-  const handleSave = (data) => {
+  const handleSave = async (data) => {
     console.log("Saving data:", data);
     console.log("Operation type:", modalType);
     console.log("Editing item:", editingItem);
@@ -72,6 +78,7 @@ const handelDelete = () => {
     switch (modalType) {
       case "badge-create":
         // Create new badge
+        const res = await createBadges(data)
         break;
       case "badge-edit":
         // Update existing badge
@@ -97,13 +104,7 @@ const handelDelete = () => {
   { id: 6, name: "Innovator", description: "For creative contributions" },
 ];
 
-const categories = [
-  { id: 1, name: "Beginner", description: "Suitable for new users" },
-  { id: 2, name: "Intermediate", description: "For regular users" },
-  { id: 3, name: "Advanced", description: "For experienced users" },
-  { id: 4, name: "Expert", description: "Top tier users" },
-  { id: 5, name: "Master", description: "Elite users only" },
-];
+
 
 const MotivetionCard = ({ item, type, onEdit }) => (
   <div className="bg-[#343F4F] rounded-xl text-white p-4">
@@ -117,12 +118,8 @@ const MotivetionCard = ({ item, type, onEdit }) => (
         <h2>{item.name}</h2>
       </div>
       <div className="flex items-center gap-4">
-        <FaRegEdit
-        size={18} 
-          className="text-white cursor-pointer"
-          onClick={() => onEdit(item)}
-        />
-        <FaTrash onClick={()=> handelDelete()} size={18} className="text-white cursor-pointer" />
+
+        
       </div>
     </div>
     <p className="mt-2 w-[80%] text-start">{item.description}</p>
@@ -144,15 +141,10 @@ const MotivetionCard = ({ item, type, onEdit }) => (
           <h3 className="text-[24px] font-semibold text-[#000000]">
             Badges & overview
           </h3>
-          <button
-            onClick={handleCreateBadge}
-            className="bg-[#343F4F] flex items-center gap-3 text-white px-5 py-2 rounded-[10px]"
-          >
-            <FaAward size={18} /> Create new Badge
-          </button>
+
         </div>
         <div className="grid grid-cols-5 mt-5 gap-4">
-           {badges.map((badge) => (
+           {allbadges?.map((badge) => (
     <MotivetionCard
       key={badge.id}
       item={badge}
@@ -164,32 +156,7 @@ const MotivetionCard = ({ item, type, onEdit }) => (
       </div>
 
       {/* Categories Section */}
-      <div
-        className="p-6 text-center mt-5 rounded-md"
-        style={{ boxShadow: "0px 0px 10px 0px #0000001A" }}
-      >
-        <div className="flex justify-between">
-          <h3 className="text-[24px] font-semibold text-[#000000]">
-            Category Management
-          </h3>
-          <button
-            onClick={handleCreateCategory}
-            className="bg-[#343F4F] flex items-center gap-3 text-white px-5 py-2 rounded-[10px]"
-          >
-            <AiOutlineMenu size={18} /> Create New Category
-          </button>
-        </div>
-        <div className="grid grid-cols-5 mt-5 gap-4">
-  {categories.map((category) => (
-    <MotivetionCard
-      key={category.id}
-      item={category}
-      type="category"
-      onEdit={handleEditCategory}
-    />
-  ))}
-        </div>
-      </div>
+ 
       <div>
         <TableSection type="leaderboard" />
 

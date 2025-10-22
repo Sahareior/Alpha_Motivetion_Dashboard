@@ -1,84 +1,70 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Bell, Plus, CreditCard as Edit, Trash2, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { FaCalendar, FaClock, FaRegEdit } from "react-icons/fa";
+import { Toaster, toast } from 'sonner';
+import {
+  useGetAllNotificationQuery,
+  useNotificationCreateMutation,
+  useEditNotificationMutation
+} from '../../../store/slices/apiSlice.js'
 
 interface Notification {
   id: string;
-  name: string;
-  description: string;
-  date: string;
+  title: string;
+  descriptions: string;
   time: string;
-  user: string;
-  status: "Active" | "Draft" | "Scheduled";
+  users: "all_user" | "premium" | "free";
+  status?: "Active" | "Draft" | "Scheduled";
 }
 
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    name: "Morning Motivation",
-    description: "Start your day with a motivational quote! Check out today's inspirational quote.",
-    date: "2024-01-15",
-    time: "08:00",
-    user: "All Users",
-    status: "Active"
-  },
-  {
-    id: "2",
-    name: "Premium Feature Highlight",
-    description: "Discover new premium features available for premium users!",
-    date: "2024-01-16",
-    time: "14:00",
-    user: "Premium Users",
-    status: "Scheduled"
-  },
-  {
-    id: "3",
-    name: "Weekend Challenge",
-    description: "Join our weekend challenge! Complete tasks to earn extra points this weekend.",
-    date: "2024-01-20",
-    time: "10:00",
-    user: "All Users",
-    status: "Draft"
-  },
-  {
-    id: "4",
-    name: "Upgrade Reminder",
-    description: "Unlock premium features! Upgrade now to continue accessing premium features!",
-    date: "2024-01-18",
-    time: "16:00",
-    user: "Free Users",
-    status: "Scheduled"
-  },
-  {
-    id: "5",
-    name: "Upgrade Reminder",
-    description: "Unlock premium features! Upgrade now to continue accessing premium features!",
-    date: "2024-01-22",
-    time: "12:00",
-    user: "Free Users",
-    status: "Draft"
-  }
-];
+// Helper function to format date from ISO string to YYYY-MM-DD
+const formatDate = (isoString: string): string => {
+  return isoString.split('T')[0];
+};
 
-const StatusBadge = ({ user }: { user: Notification["user"] }) => {
+// Helper function to format time from ISO string to HH:MM
+const formatTime = (isoString: string): string => {
+  const date = new Date(isoString);
+  return date.toTimeString().slice(0, 5);
+};
+
+// Helper function to create ISO string from date and time
+const createISODateTime = (date: string, time: string): string => {
+  return `${date}T${time}:00.000Z`;
+};
+
+const StatusBadge = ({ user }: { user: Notification["users"] }) => {
   const getStatusStyles = () => {
     switch (user) {
-      case "Premium Users":
+      case "premium":
         return "bg-green-100 text-green-800 border-green-200";
-      case "All Users":
+      case "all_user":
         return "bg-blue-100 text-blue-800 border-blue-200";
-      case "Free Users":
+      case "free":
         return "bg-gray-100 text-gray-800 border-gray-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
+  const getDisplayText = () => {
+    switch (user) {
+      case "premium":
+        return "Premium Users";
+      case "all_user":
+        return "All Users";
+      case "free":
+        return "Free Users";
+      default:
+        return user;
+    }
+  };
+
   return (
     <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusStyles()}`}>
-      {user}
+      {getDisplayText()}
     </span>
   );
 };
@@ -93,23 +79,43 @@ interface NotificationModalProps {
 
 const NotificationModal = ({ isOpen, onClose, onSave, notification, title }: NotificationModalProps) => {
   const [formData, setFormData] = useState({
-    name: notification?.name || "",
-    description: notification?.description || "",
-    date: notification?.date || "",
-    time: notification?.time || "",
-    user: notification?.user || "All Users",
-    status: notification?.status || "Draft" as Notification["status"]
+    title: notification?.title || "",
+    descriptions: notification?.descriptions || "",
+    date: notification ? formatDate(notification.time) : "",
+    time: notification ? formatTime(notification.time) : "",
+    users: notification?.users || "all_user" as Notification["users"]
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    const notificationData: Omit<Notification, "id"> = {
+      title: formData.title,
+      descriptions: formData.descriptions,
+      time: createISODateTime(formData.date, formData.time),
+      users: formData.users
+    };
+    
+    onSave(notificationData);
     onClose();
   };
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  // Reset form when notification prop changes
+  useEffect(() => {
+    if (notification) {
+      setFormData({
+        title: notification.title,
+        descriptions: notification.descriptions,
+        date: formatDate(notification.time),
+        time: formatTime(notification.time),
+        users: notification.users
+      });
+    }
+  }, [notification]);
 
   if (!isOpen) return null;
 
@@ -131,14 +137,14 @@ const NotificationModal = ({ isOpen, onClose, onSave, notification, title }: Not
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name
+              Title
             </label>
             <input
               type="text"
-              value={formData.name}
-              onChange={(e) => handleChange("name", e.target.value)}
+              value={formData.title}
+              onChange={(e) => handleChange("title", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter name"
+              placeholder="Enter title"
               required
             />
           </div>
@@ -148,8 +154,8 @@ const NotificationModal = ({ isOpen, onClose, onSave, notification, title }: Not
               Description
             </label>
             <textarea
-              value={formData.description}
-              onChange={(e) => handleChange("description", e.target.value)}
+              value={formData.descriptions}
+              onChange={(e) => handleChange("descriptions", e.target.value)}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               placeholder="Enter description"
@@ -190,13 +196,13 @@ const NotificationModal = ({ isOpen, onClose, onSave, notification, title }: Not
               User
             </label>
             <select
-              value={formData.user}
-              onChange={(e) => handleChange("user", e.target.value)}
+              value={formData.users}
+              onChange={(e) => handleChange("users", e.target.value as Notification["users"])}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="All Users">All Users</option>
-              <option value="Premium Users">Premium Users</option>
-              <option value="Free Users">Free Users</option>
+              <option value="all_user">All Users</option>
+              <option value="premium">Premium Users</option>
+              <option value="free">Free Users</option>
             </select>
           </div>
 
@@ -213,33 +219,71 @@ const NotificationModal = ({ isOpen, onClose, onSave, notification, title }: Not
 };
 
 export const PushNotifications = (): JSX.Element => {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingNotification, setEditingNotification] = useState<Notification | undefined>();
 
-  const handleCreateNotification = (notificationData: Omit<Notification, "id">) => {
-    const newNotification: Notification = {
-      ...notificationData,
-      id: Date.now().toString()
-    };
-    setNotifications(prev => [...prev, newNotification]);
+  const { data: allNotifications, isLoading, error } = useGetAllNotificationQuery();
+  const [notificationCreate, { isLoading: isCreating }] = useNotificationCreateMutation();
+  const [editNotification, { isLoading: isEditing }] = useEditNotificationMutation();
+
+  // Update local state when API data changes
+  useEffect(() => {
+    if (allNotifications) {
+      const formattedNotifications: Notification[] = allNotifications.map((notification: any) => ({
+        id: notification.id.toString(),
+        title: notification.title,
+        descriptions: notification.descriptions,
+        time: notification.time,
+        users: notification.users
+      }));
+      setNotifications(formattedNotifications);
+    }
+  }, [allNotifications]);
+
+  const handleCreateNotification = async (notificationData: Omit<Notification, "id">) => {
+    try {
+      const result = await notificationCreate(notificationData).unwrap();
+      toast('Notification has been created successfully')
+      // Add the new notification to local state
+      const newNotification: Notification = {
+        ...notificationData,
+        id: result.id.toString() // Use the ID returned from the API
+      };
+      setNotifications(prev => [...prev, newNotification]);
+    } catch (error) {
+      console.error('Failed to create notification:', error);
+      // Handle error (show toast, etc.)
+    }
   };
 
-  const handleEditNotification = (notificationData: Omit<Notification, "id">) => {
+  const handleEditNotification = async (notificationData: Omit<Notification, "id">) => {
     if (editingNotification) {
-      setNotifications(prev =>
-        prev.map(notification =>
-          notification.id === editingNotification.id
-            ? { ...notificationData, id: editingNotification.id }
-            : notification
-        )
-      );
+      try {
+        await editNotification({
+          id: editingNotification.id,
+          data: notificationData
+        }).unwrap();
+toast("Notification has been edited successfully")
+        // Update local state
+        setNotifications(prev =>
+          prev.map(notification =>
+            notification.id === editingNotification.id
+              ? { ...notificationData, id: editingNotification.id }
+              : notification
+          )
+        );
+      } catch (error) {
+        console.error('Failed to edit notification:', error);
+        // Handle error (show toast, etc.)
+      }
     }
     setEditingNotification(undefined);
   };
 
   const handleDeleteNotification = (id: string) => {
+    // Note: You'll need a delete mutation if you want to delete from the backend
     setNotifications(prev => prev.filter(notification => notification.id !== id));
   };
 
@@ -248,81 +292,98 @@ export const PushNotifications = (): JSX.Element => {
     setIsEditModalOpen(true);
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center">
+        <div className="text-gray-600">Loading notifications...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center">
+        <div className="text-red-600">Error loading notifications</div>
+      </div>
+    );
+  }
+
   return (
-    <div className=" min-h-screen w-full">
-      {/* Sidebar */}
-            <div className="flex items-center justify-between ">
-             <div className='mt-5 pb-5 mx-5'>
-            <h2 className='text-[32px] font-semibold'>Push Notifications</h2>
-   
-</div>
-              <Button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="bg-[#343F4F] hover:bg-gray-900 text-white px-4 py-5 rounded-lg flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Create Notification</span>
-              </Button>
-            </div>
+    <div className="min-h-screen w-full">
+      <Toaster />
+      <div className="flex items-center justify-between">
+        <div className='mt-5 pb-5 mx-5'>
+          <h2 className='text-[32px] font-semibold'>Push Notifications</h2>
+        </div>
+        <Button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="bg-[#343F4F] hover:bg-gray-900 text-white px-4 py-5 rounded-lg flex items-center space-x-2"
+          disabled={isCreating}
+        >
+          <Plus className="w-4 h-4" />
+          <span>Create Notification</span>
+        </Button>
+      </div>
 
-      {/* Main Content */}
       <div className="">
-        {/* Header */}
-
-
-        {/* Push Notifications Card */}
         <Card className="bg-white rounded-2xl shadow-lg">
           <CardContent className="p-8">
-            {/* Title and Create Button */}
-
-
-            {/* Scheduled Section */}
             <div className="mb-6">
               <h2 className="text-[24px] font-semibold mb-4 text-[#000000]">Scheduled</h2>
               
-              <div className="space-y-4">
-                {notifications.map((notification) => (
-                  <Card key={notification.id} className="bg-[#2a3441] border-none">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <Bell className="w-5 h-5 text-gray-400" />
-                            <h3 className="text-white font-medium">{notification.name}</h3>
-                           
+              <div className="space-y-4 h-[75vh] overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No notifications found
+                  </div>
+                ) : (
+                  notifications.map((notification) => (
+                    <Card key={notification.id} className="bg-[#2a3441] border-none">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <Bell className="w-5 h-5 text-gray-400" />
+                              <h3 className="text-white font-medium">{notification.title}</h3>
+                            </div>
+                            <p className="text-gray-300 text-sm mb-3 ml-8">
+                              {notification.descriptions}
+                            </p>
+                            <div className="flex items-center space-x-4 ml-8 text-xs text-gray-400">
+                              <span className="flex items-center gap-2">
+                                <FaCalendar /> {formatDate(notification.time)}
+                              </span>
+                              <span className="flex items-center gap-2">
+                                <FaClock /> {formatTime(notification.time)}
+                              </span>
+                              <StatusBadge user={notification.users} />
+                            </div>
                           </div>
-                          <p className="text-gray-300 text-sm mb-3 ml-8">
-                            {notification.description}
-                          </p>
-                          <div className="flex items-center space-x-4 ml-8 text-xs text-gray-400">
-                            <span className="flex items-center gap-2"><FaCalendar /> {notification.date}</span>
-                            <span className="flex items-center gap-2"><FaClock /> {notification.time}</span>
-                             <StatusBadge user={notification.user} />
+                          
+                          <div className="flex text-white items-center">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditModal(notification)}
+                              className="h-8 w-8 p-0 hover:text-white hover:bg-gray-600"
+                              disabled={isEditing}
+                            >
+                              <FaRegEdit className="h-10 w-10" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteNotification(notification.id)}
+                              className="h-8 w-8 p-0 hover:text-red-400 hover:bg-gray-600"
+                            >
+                              <Trash2 className="h-6 w-6" />
+                            </Button>
                           </div>
                         </div>
-                        
-                        <div className="flex text-white items-center ">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditModal(notification)}
-                            className="h-8 w-8 p-0  hover:text-white hover:bg-gray-600"
-                          >
-                            <FaRegEdit   className="h-10 w-10" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteNotification(notification.id)}
-                            className="h-8 w-8 p-0  hover:text-red-400 hover:bg-gray-600"
-                          >
-                            <Trash2 className="h-6 w-6" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
             </div>
           </CardContent>

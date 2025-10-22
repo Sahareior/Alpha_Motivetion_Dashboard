@@ -7,6 +7,7 @@ const CommonModal = ({
   onSave,
   title,
   type,
+  data,
   initialData = {},
 }) => {
   const [formData, setFormData] = useState({
@@ -95,6 +96,27 @@ const CommonModal = ({
             type: "file"
           }
         ];
+
+      case "edit-profile":
+        return [
+          {
+            name: "name",
+            label: "Name",
+            type: "text",
+            placeholder: data?.first_name
+          },
+          // {
+          //   name: "email",
+          //   label: "Email",
+          //   type: "text",
+          //   placeholder: "Enter your email address"
+          // },
+          {
+            name: "icon",
+            label: "Profile Photo",
+            type: "file"
+          }
+        ];
       
       // Add other cases as needed
       default:
@@ -102,6 +124,7 @@ const CommonModal = ({
     }
   };
 
+  console.log(data,'this is datya')
   const fields = getFieldConfig();
 
   return (

@@ -1,25 +1,19 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const pokemonApi = createApi({
-  reducerPath: 'pokemonApi',
-baseQuery: fetchBaseQuery({
-  baseUrl: 'https://dc065a30f2f8.ngrok-free.app/', // 👈 use your API root, not the homepage
-  prepareHeaders: (headers) => {
-    // Add auth header
-    const token = localStorage.getItem('token1212');
-    if (token) {
-      headers.set('authorization', `Bearer ${token}`);
-    }
+  reducerPath: "pokemonApi",
+  baseQuery: fetchBaseQuery({
+    baseUrl: "http://10.10.13.36:8888/", // 👈 use your API root, not the homepage
+    prepareHeaders: (headers) => {
+      // Add auth header
+      const token = localStorage.getItem("token1212");
+      if (token) {
+        headers.set("authorization", `Bearer ${token}`);
+      }
 
-    // ✅ Skip ngrok browser warning
-    headers.set('ngrok-skip-browser-warning', 'true');
-
-    // (Optional) Set custom User-Agent to skip warning too
-    headers.set('User-Agent', 'ReactNativeApp');
-
-    return headers;
-  },
-}),
+      return headers;
+    },
+  }),
 
   endpoints: (build) => ({
     // Example GET request
@@ -29,61 +23,72 @@ baseQuery: fetchBaseQuery({
 
     // Example POST request (login)
 
+    profile: build.query({
+      query: () => "/users/profile/get",
+    }),
 
     loginDashboard: build.mutation({
       query: (data) => ({
-        url: 'auth/login/',
-        method: 'POST',
+        url: "auth/login/",
+        method: "POST",
         body: data,
       }),
     }),
 
     dashboardGraph: build.query({
-      query: ()=> '/dashboard/graphs/'
+      query: () => "/dashboard/graphs/",
     }),
     // .....................................................new..................................
 
-    dashboardLogin: build.mutation({
-      query: (data)=> ({
-        url: '/dashboard/login/',
+    notificationCreate: build.mutation({
+      query: (data) => ({
+        url: "/dashboard/notifications/",
         method: "POST",
-        body:data
-      })
+        body: data,
+      }),
     }),
 
-revenuData: build.query({
-  query: (year) => `dashboard/revenue_report/?year=${year}`,
-}),
+    dashboardLogin: build.mutation({
+      query: (data) => ({
+        url: "/dashboard/login/",
+        method: "POST",
+        body: data,
+      }),
+    }),
 
-userActivity: build.query({
-  query: ()=> '/dashboard/weekly_user_activity/'
-}),
+    revenuData: build.query({
+      query: (year) => `dashboard/revenue_report/?year=${year}`,
+    }),
 
-subsDist: build.query({
-  query: ()=> "/dashboard/subscription_distribution/"
-}),
+    userActivity: build.query({
+      query: () => "/dashboard/weekly_user_activity/",
+    }),
+
+    subsDist: build.query({
+      query: () => "/dashboard/subscription_distribution/",
+    }),
 
     dashboardStats: build.query({
-      query: ()=> "/dashboard/dashboard_data/"
+      query: () => "/dashboard/dashboard_data/",
     }),
 
     userLists: build.query({
-      query: ()=> '/dashboard/users/'
+      query: () => "/dashboard/users/",
     }),
 
     deactiveUser: build.mutation({
       query: (data) => ({
         url: "/dashboard/account/deactivate",
-      method:'POST',
-      body: data
-      })
+        method: "POST",
+        body: data,
+      }),
     }),
 
     userDelete: build.mutation({
       query: (id) => ({
         url: `users/${id}/`,
-        method: 'DELETE',
-      })
+        method: "DELETE",
+      }),
     }),
 
     // Dashboard Apis
@@ -91,31 +96,187 @@ subsDist: build.query({
     // category apis
 
     allCategories: build.query({
-      query: ()=> '/categories/'
+      query: () => "/categories/",
     }),
 
-  createCategory: build.mutation({
-      query: (data)=> ({
-        url:'/categories/',
-        method: 'POST',
-        body: data
-      })
+    createCategory: build.mutation({
+      query: (data) => ({
+        url: "/categories/",
+        method: "POST",
+        body: data,
+      }),
     }),
 
     getSubs: build.query({
-      query: ()=> 'subscription-plans/'
+      query: () => "subscription-plans/",
+    }),
+
+    getAllNotification: build.query({
+      query: () => "/dashboard/notifications",
+    }),
+    editNotification: build.mutation({
+      query: ({ id, data }) => ({
+        url: `/dashboard/notifications/${id}/`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+
+    getBadges: build.query({
+      query: () => "/dashboard/badges/",
+    }),
+
+    createBadges: build.mutation({
+      query: (data) => ({
+        url: "/dashboard/badges/",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    dashLeaderBoard: build.query({
+      query: () => "/dashboard/leaderboard/",
+    }),
+
+    dashLeaderboardDelete: build.mutation({
+      query: (id) => ({
+        url: `/dashboard/leaderboard/${id}/delete/`,
+        method: "DELETE",
+      }),
+    }),
+
+    getPlans: build.query({
+      query: () => "/dashboard/payments/",
+    }),
+
+    getPrivacy: build.query({
+      query: () => "/dashboard/privacy-policy/",
+    }),
+
+    postPrivacy: build.mutation({
+      query: (data) => ({
+        url: "/dashboard/admin/privacy-policy/",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    getTerms: build.query({
+      query: () => "/dashboard/terms-and-condition/",
+    }),
+
+    postTerms: build.mutation({
+      query: (data) => ({
+        url: "/dashboard/admin/terms-and-condition/",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    suspendUser: build.query({
+      query: (id) => ({
+        url: `/dashboard/account/deactivate/${id}/`,
+      }),
+    }),
+
+    reactiveUser: build.query({
+      query: (id) => ({
+        url: `/dashboard/account/activate/${id}/`,
+      }),
+    }),
+
+    subsPlanList: build.query({
+      query: () => "dashboard/subscription-plan/list/",
+    }),
+
+    planUpdate: build.mutation({
+      query: ({ name, price }) => ({
+        url: `/dashboard/subscription-plan/${name}/update/`,
+        method: "PUT",
+        body: price,
+      }),
+    }),
+
+    deleteDashUser: build.mutation({
+      query: (id) => ({
+        url: `/dashboard/account/delete/${id}/`,
+        method: "DELETE",
+      }),
+    }),
+
+    dashPaymentDelete: build.mutation({
+      query: (id) => ({
+        url: `/dashboard/payments/${id}/delete/`,
+        method: "DELETE",
+      }),
+    }),
+
+    leaderBoardDelete: build.mutation({
+      query: (id) => ({
+        url: `/dashboard/leaderboard/${id}/delete/`,
+        method: "DELETE",
+      }),
+    }),
+
+    updatePlanType: build.mutation({
+      query: (data)=> ({
+        url: '/dashboard/users/subscription/update/',
+        method:'POST',
+        body:data
+      })
+    }),
+
+    updateProfile: build.mutation({
+      query:(data)=>({
+        url: '/users/profile/update',
+        method:'PUT',
+        body:data
+      })
     }),
 
     dashBoardOverview: build.query({
-      query: () => "dashboard/overview/"
-    })
+      query: () => "dashboard/overview/",
+    }),
   }),
-})
+});
 
 // Export auto-generated hooks
-export const { useGetPokemonByNameQuery, useLoginDashboardMutation,
-   useAllCategoriesQuery,useGetSubsQuery, useRevenuDataQuery,
-  useUserActivityQuery,useSubsDistQuery,useDeactiveUserMutation,
-  useDashboardStatsQuery, useDashboardLoginMutation,
-  useDashBoardOverviewQuery,useDashboardGraphQuery,useUserListsQuery,
-   useUserDeleteMutation,useCreateCategoryMutation } = pokemonApi
+export const {
+  useGetPokemonByNameQuery,
+  useUpdateProfileMutation,
+  useUpdatePlanTypeMutation,
+  useProfileQuery,
+  useLoginDashboardMutation,
+  usePlanUpdateMutation,
+  useGetPrivacyQuery,
+  useGetTermsQuery,
+  usePostPrivacyMutation,
+  usePostTermsMutation,
+  useAllCategoriesQuery,
+  useGetSubsQuery,
+  useRevenuDataQuery,
+  useDashLeaderBoardQuery,
+  useDashLeaderboardDeleteMutation,
+  useLazySuspendUserQuery,
+  useUserActivityQuery,
+  useSubsDistQuery,
+  useDeactiveUserMutation,
+  useGetBadgesQuery,
+  useCreateBadgesMutation,
+  useGetPlansQuery,
+  useLeaderBoardDeleteMutation,
+  useDashboardStatsQuery,
+  useDashboardLoginMutation,
+  useNotificationCreateMutation,
+  useGetAllNotificationQuery,
+  useEditNotificationMutation,
+  useDashBoardOverviewQuery,
+  useDashboardGraphQuery,
+  useUserListsQuery,
+  useSubsPlanListQuery,
+  useDeleteDashUserMutation,
+  useDashPaymentDeleteMutation,
+  useUserDeleteMutation,
+  useCreateCategoryMutation,
+  useLazyReactiveUserQuery,
+} = pokemonApi;

@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const pokemonApi = createApi({
   reducerPath: "pokemonApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.BASE_URI, 
+    baseUrl: import.meta.env.VITE_BASE_URI, 
     prepareHeaders: (headers) => {
       // Add auth header
       const token = localStorage.getItem("token1212");

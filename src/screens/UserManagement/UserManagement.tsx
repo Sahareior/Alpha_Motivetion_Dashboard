@@ -211,18 +211,60 @@ const ActionMenu = ({
     }
   };
 
-  const handelDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+const handelDelete = async (e: React.MouseEvent) => {
+  e.stopPropagation();
+  
+  const result = await Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel',
+    background: '#1f2937',
+    color: '#fff',
+    customClass: {
+      confirmButton: 'bg-red-600 hover:bg-red-700 px-4 py-2 rounded',
+      cancelButton: 'bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded mr-2'
+    }
+  });
+
+  if (result.isConfirmed) {
     try {
       await deleteDashUser(userId).unwrap();
       handelAlert('User deleted successfully');
       refetch();
       setIsOpen(false);
+      
+      // Optional: Show success confirmation
+      Swal.fire({
+        title: 'Deleted!',
+        text: 'User has been deleted successfully.',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false,
+        background: '#1f2937',
+        color: '#fff'
+      });
     } catch (error) {
       console.error("Failed to delete user:", error);
       handelAlert("Failed to delete user");
+      
+      // Show error alert
+      Swal.fire({
+        title: 'Error!',
+        text: 'Failed to delete user. Please try again.',
+        icon: 'error',
+        timer: 2000,
+        showConfirmButton: false,
+        background: '#1f2937',
+        color: '#fff'
+      });
     }
-  };
+  }
+};
 
   return (
     <div className="relative inline-block text-left">
@@ -286,11 +328,11 @@ const transformApiUserToUser = (apiUser: ApiUser): User => {
     return email.substring(0, 2).toUpperCase();
   };
 
-  const getStatus = (isActive: boolean, lastActivity: string | null): User["status"] => {
-    if (!isActive) return "Suspended";
-    if (!lastActivity) return "Inactive";
-    return "Active";
-  };
+const getStatus = (isActive: boolean, lastActivity: string | null): User["status"] => {
+  if (!isActive) return "Suspended";
+  // If user is active, they should be "Active" regardless of last_activity
+  return "Active";
+};
 
   return {
     id: apiUser.id.toString(),
@@ -307,10 +349,66 @@ const transformApiUserToUser = (apiUser: ApiUser): User => {
   };
 };
 
+// Generate page numbers with ellipsis logic
+const generatePageNumbers = (currentPage: number, totalPages: number) => {
+  const pages = [];
+  const maxVisiblePages = 5;
+  
+  if (totalPages <= maxVisiblePages) {
+    // Show all pages if total pages is less than max visible
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+  } else {
+    // Always show first page
+    pages.push(1);
+    
+    let startPage = Math.max(2, currentPage - 1);
+    let endPage = Math.min(totalPages - 1, currentPage + 1);
+    
+    // Adjust if we're at the beginning
+    if (currentPage <= 3) {
+      endPage = 4;
+    }
+    
+    // Adjust if we're at the end
+    if (currentPage >= totalPages - 2) {
+      startPage = totalPages - 3;
+    }
+    
+    // Add ellipsis after first page if needed
+    if (startPage > 2) {
+      pages.push('...');
+    }
+    
+    // Add middle pages
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    // Add ellipsis before last page if needed
+    if (endPage < totalPages - 1) {
+      pages.push('...');
+    }
+    
+    // Always show last page
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+  }
+  
+  return pages;
+};
+
 export const UserManagement = (): JSX.Element => {
   const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 10;
-  const { data: apiResponse, isLoading, error, refetch } = useUserListsQuery();
+  const [pageSize, setPageSize] = useState(10);
+
+  // Use the query with pagination parameters
+  const { data: apiResponse, isLoading, error, refetch } = useUserListsQuery({
+    page: currentPage,
+    pageSize: pageSize
+  });
 
   const users: User[] = apiResponse?.results 
     ? apiResponse.results.map(transformApiUserToUser)
@@ -318,6 +416,11 @@ export const UserManagement = (): JSX.Element => {
   
   const totalPages = apiResponse?.total_pages || 1;
   const totalUsers = apiResponse?.count || 0;
+  const currentPageFromApi = apiResponse?.current_page || 1;
+
+  // Calculate display range
+  const startIndex = (currentPageFromApi - 1) * pageSize + 1;
+  const endIndex = Math.min(currentPageFromApi * pageSize, totalUsers);
 
   const handleAction = (userId: string, action: string) => {
     console.log(`Action ${action} for user ${userId}`);
@@ -328,12 +431,14 @@ export const UserManagement = (): JSX.Element => {
   };
 
   const handleSubscriptionUpdate = () => {
-    refetch(); // Refresh the user list after subscription update
+    refetch();
   };
 
-  const startIndex = (currentPage - 1) * usersPerPage;
-  const endIndex = startIndex + usersPerPage;
-  const currentUsers = users.slice(startIndex, endIndex);
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  const pageNumbers = generatePageNumbers(currentPageFromApi, totalPages);
 
   if (isLoading) {
     return (
@@ -394,7 +499,7 @@ export const UserManagement = (): JSX.Element => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {currentUsers.map((user) => (
+                      {users.map((user) => (
                         <tr key={user.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
@@ -451,41 +556,48 @@ export const UserManagement = (): JSX.Element => {
                 </div>
               </div>
 
+              {/* Pagination */}
               <div className="flex items-center justify-between mt-6">
                 <div className="text-sm text-gray-700">
-                  Showing {startIndex + 1} to {Math.min(endIndex, totalUsers)} of {totalUsers} users
+                  {/* Showing {startIndex} to {endIndex} of {totalUsers} users */}
                 </div>
                 
                 <div className="flex items-center space-x-2">
+                  {/* Previous Button */}
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(currentPageFromApi - 1)}
+                    disabled={currentPageFromApi === 1}
                     className="h-8 w-8 p-0"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   
+                  {/* Page Numbers */}
                   <div className="flex space-x-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    {pageNumbers.map((page, index) => (
                       <Button
-                        key={page}
-                        variant={currentPage === page ? "default" : "outline"}
+                        key={index}
+                        variant={currentPageFromApi === page ? "default" : "outline"}
                         size="sm"
-                        onClick={() => setCurrentPage(page)}
-                        className="h-8 w-8 p-0"
+                        onClick={() => typeof page === 'number' && handlePageChange(page)}
+                        disabled={page === '...'}
+                        className={`h-8 w-8 p-0 ${
+                          page === '...' ? 'cursor-default border-transparent' : ''
+                        }`}
                       >
                         {page}
                       </Button>
                     ))}
                   </div>
                   
+                  {/* Next Button */}
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
+                    onClick={() => handlePageChange(currentPageFromApi + 1)}
+                    disabled={currentPageFromApi === totalPages}
                     className="h-8 w-8 p-0"
                   >
                     <ChevronRight className="h-4 w-4" />

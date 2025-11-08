@@ -40,7 +40,7 @@ console.log(newStats,'this is stats')
             <h2 className='text-[32px] font-semibold'>Dashboard</h2>
           <p className='text-[20px] font-normal'>Welcome back, Sijan</p>
 </div>
-                    <div className=" grid grid-cols-4 gap-4 justify-items-center">
+                    <div className=" grid md:grid-cols-4 grid-cols-1 gap-4 justify-items-center">
                       {metricCards.map((card, index) => (
                         <Card
                           key={index}

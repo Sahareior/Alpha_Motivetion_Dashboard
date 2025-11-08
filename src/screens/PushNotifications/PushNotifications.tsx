@@ -7,7 +7,8 @@ import { Toaster, toast } from 'sonner';
 import {
   useGetAllNotificationQuery,
   useNotificationCreateMutation,
-  useEditNotificationMutation
+  useEditNotificationMutation,
+  useNotificationDeleteMutation
 } from '../../../store/slices/apiSlice.js'
 
 interface Notification {
@@ -224,28 +225,38 @@ export const PushNotifications = (): JSX.Element => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingNotification, setEditingNotification] = useState<Notification | undefined>();
 
-  const { data: allNotifications, isLoading, error } = useGetAllNotificationQuery();
+  const { data: allNotifications, isLoading, error,refetch } = useGetAllNotificationQuery();
   const [notificationCreate, { isLoading: isCreating }] = useNotificationCreateMutation();
   const [editNotification, { isLoading: isEditing }] = useEditNotificationMutation();
+  const [notificationDelete] = useNotificationDeleteMutation()
+
+
+  console.log(allNotifications,'asasasa')
 
   // Update local state when API data changes
-  useEffect(() => {
-    if (allNotifications) {
-      const formattedNotifications: Notification[] = allNotifications.map((notification: any) => ({
+// Update local state when API data changes
+useEffect(() => {
+  if (allNotifications) {
+    const formattedNotifications: Notification[] = allNotifications
+      .map((notification: any) => ({
         id: notification.id.toString(),
         title: notification.title,
         descriptions: notification.descriptions,
         time: notification.time,
         users: notification.users
-      }));
-      setNotifications(formattedNotifications);
-    }
-  }, [allNotifications]);
+      }))
+      // Sort by ID in descending order
+      .sort((a, b) => parseInt(b.id) - parseInt(a.id));
+    
+    setNotifications(formattedNotifications);
+  }
+}, [allNotifications]);
 
   const handleCreateNotification = async (notificationData: Omit<Notification, "id">) => {
     try {
       const result = await notificationCreate(notificationData).unwrap();
       toast('Notification has been created successfully')
+      refetch()
       // Add the new notification to local state
       const newNotification: Notification = {
         ...notificationData,
@@ -256,6 +267,7 @@ export const PushNotifications = (): JSX.Element => {
       console.error('Failed to create notification:', error);
       // Handle error (show toast, etc.)
     }
+     refetch()
   };
 
   const handleEditNotification = async (notificationData: Omit<Notification, "id">) => {
@@ -266,6 +278,7 @@ export const PushNotifications = (): JSX.Element => {
           data: notificationData
         }).unwrap();
 toast("Notification has been edited successfully")
+refetch()
         // Update local state
         setNotifications(prev =>
           prev.map(notification =>
@@ -282,9 +295,14 @@ toast("Notification has been edited successfully")
     setEditingNotification(undefined);
   };
 
-  const handleDeleteNotification = (id: string) => {
+  const handleDeleteNotification = async (id: string) => {
     // Note: You'll need a delete mutation if you want to delete from the backend
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
+    const res = await notificationDelete(id).unwrap()
+    console.log(res)
+    if(res.detail === 'Deleted successfully'){
+      toast("Notification deleted successfully")
+    }
+    refetch()
   };
 
   const openEditModal = (notification: Notification) => {

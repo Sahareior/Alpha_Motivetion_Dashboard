@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -13,13 +13,44 @@ import { ChevronDown } from "lucide-react";
 import { useRevenuDataQuery } from "../../../../store/slices/apiSlice";
 
 const RevenueTrend = () => {
-  const { data: revenue, isLoading } = useRevenuDataQuery(2025);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const { data: revenue, isLoading } = useRevenuDataQuery(selectedYear);
+
+  // Generate year options (current year and previous 4 years)
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Ensure data exists, and convert revenue to numbers
   const chartData = revenue?.map((item) => ({
     month: item.month,
     revenue: parseFloat(item.revenue),
   })) || [];
+
+  const handleYearSelect = (year) => {
+    setSelectedYear(year);
+    setIsDropdownOpen(false);
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
 
   return (
     <div
@@ -28,10 +59,36 @@ const RevenueTrend = () => {
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="py-2 font-semibold text-[32px]">Revenue Report</h2>
-        <button className="flex items-center gap-1 font-semibold border px-3 py-1 rounded-md text-sm">
-          Filter <ChevronDown size={14} />
-        </button>
+        <h2 className="py-2 font-semibold text-sm md:text-[32px]">Revenue Report</h2>
+        
+        {/* Filter Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button 
+            className="flex items-center gap-1 font-semibold border px-3 py-1 rounded-md text-sm hover:bg-gray-50 transition-colors"
+            onClick={toggleDropdown}
+          >
+            {selectedYear} <ChevronDown size={14} />
+          </button>
+          
+          {/* Dropdown Menu */}
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+              {yearOptions.map((year) => (
+                <button
+                  key={year}
+                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                    year === selectedYear 
+                      ? "bg-blue-50 text-blue-600 font-medium" 
+                      : "text-gray-700"
+                  }`}
+                  onClick={() => handleYearSelect(year)}
+                >
+                  {year}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Loading state */}

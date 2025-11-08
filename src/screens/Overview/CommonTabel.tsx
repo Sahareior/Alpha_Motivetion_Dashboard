@@ -37,6 +37,8 @@ interface LeaderboardApiResponse {
   next: string | null;
   previous: string | null;
   results: LeaderboardUser[];
+  current_page?: number;
+  total_pages?: number;
 }
 
 interface PlansApiResponse {
@@ -44,6 +46,8 @@ interface PlansApiResponse {
   next: string | null;
   previous: string | null;
   results: PlanUser[];
+  current_page?: number;
+  total_pages?: number;
 }
 
 // Default avatar for users without profile photos
@@ -81,6 +85,57 @@ const formatPaymentMethod = (method: string): string => {
   return methodMap[method] || method;
 };
 
+// Generate page numbers with ellipsis logic
+const generatePageNumbers = (currentPage: number, totalPages: number) => {
+  const pages = [];
+  const maxVisiblePages = 5;
+  
+  if (totalPages <= maxVisiblePages) {
+    // Show all pages if total pages is less than max visible
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+  } else {
+    // Always show first page
+    pages.push(1);
+    
+    let startPage = Math.max(2, currentPage - 1);
+    let endPage = Math.min(totalPages - 1, currentPage + 1);
+    
+    // Adjust if we're at the beginning
+    if (currentPage <= 3) {
+      endPage = 4;
+    }
+    
+    // Adjust if we're at the end
+    if (currentPage >= totalPages - 2) {
+      startPage = totalPages - 3;
+    }
+    
+    // Add ellipsis after first page if needed
+    if (startPage > 2) {
+      pages.push('...');
+    }
+    
+    // Add middle pages
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    // Add ellipsis before last page if needed
+    if (endPage < totalPages - 1) {
+      pages.push('...');
+    }
+    
+    // Always show last page
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+  }
+  
+  return pages;
+};
+
 export default function TableSection({
   type = "leaderboard",
 }: {
@@ -98,7 +153,6 @@ export default function TableSection({
     isLoading: leaderboardLoading, 
     refetch: refetchLeaderboard,
     error: leaderboardError 
-    
   } = useDashLeaderBoardQuery({
     page: currentPage,
     page_size: pageSize
@@ -113,8 +167,6 @@ export default function TableSection({
     page: currentPage,
     page_size: pageSize
   });
-
-  // const [dashLeaderboardDelete] = useDashLeaderboardDeleteMutation()
 
   // Update local state when API data changes
   useEffect(() => {
@@ -153,76 +205,83 @@ export default function TableSection({
     }
   }, [dashleaderboard, allPlans, type]);
 
-const handleDelete = async (userId: string) => {
-  console.log(userId, "this is userId");
+  const handleDelete = async (userId: string) => {
+    console.log(userId, "this is userId");
     Swal.fire({
-    title: "Are you sure?",
-    text: "This action will permanently delete the record.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Yes, delete it!",
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        if (type === "plan") {
-          await dashPaymentDelete(userId);
+      title: "Are you sure?",
+      text: "This action will permanently delete the record.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          if (type === "plan") {
+            await dashPaymentDelete(userId);
             toast('Deleted Successfully')
-          refetchPlans()
-        }
-        else if (type === 'leaderboard'){
-          await leaderBoardDelete(userId)
+            refetchPlans()
+          }
+          else if (type === 'leaderboard'){
+            await leaderBoardDelete(userId)
             toast('Deleted Successfully')
-          refetchLeaderboard()
+            refetchLeaderboard()
+          }
+
+          Swal.fire({
+            title: "Deleted!",
+            text: "The record has been deleted successfully.",
+            icon: "success",
+            confirmButtonColor: "#16a34a",
+          });
+        } catch (error) {
+          console.error("Delete failed:", error);
+
+          Swal.fire({
+            title: "Error!",
+            text: "Something went wrong while deleting the record.",
+            icon: "error",
+            confirmButtonColor: "#d33",
+          });
         }
-
-        // Optional: remove the deleted item from UI if using local state
-        // setData(data.filter((user: any) => user.id !== userId));
-
-        Swal.fire({
-          title: "Deleted!",
-          text: "The record has been deleted successfully.",
-          icon: "success",
-          confirmButtonColor: "#16a34a",
-        });
-      } catch (error) {
-        console.error("Delete failed:", error);
-
-        Swal.fire({
-          title: "Error!",
-          text: "Something went wrong while deleting the record.",
-          icon: "error",
-          confirmButtonColor: "#d33",
-        });
       }
-    }
-
-
-  });
-
-
-};
+    });
+  };
 
   // Calculate pagination info based on API response
   const getPaginationInfo = () => {
     if (type === "leaderboard" && dashleaderboard) {
       const apiData = dashleaderboard as LeaderboardApiResponse;
+      const totalUsers = apiData.count;
+      const totalPages = apiData.total_pages || Math.ceil(totalUsers / pageSize);
+      const currentPageFromApi = apiData.current_page || currentPage;
+      const startIndex = ((currentPageFromApi - 1) * pageSize) + 1;
+      const endIndex = Math.min(currentPageFromApi * pageSize, totalUsers);
+      
       return {
-        totalUsers: apiData.count,
-        startIndex: ((currentPage - 1) * pageSize) + 1,
-        endIndex: Math.min(currentPage * pageSize, apiData.count),
-        totalPages: Math.ceil(apiData.count / pageSize),
+        totalUsers,
+        startIndex,
+        endIndex,
+        totalPages,
+        currentPage: currentPageFromApi,
         hasNext: !!apiData.next,
         hasPrevious: !!apiData.previous
       };
     } else if (type === "plan" && allPlans) {
       const apiData = allPlans as PlansApiResponse;
+      const totalUsers = apiData.count;
+      const totalPages = apiData.total_pages || Math.ceil(totalUsers / pageSize);
+      const currentPageFromApi = apiData.current_page || currentPage;
+      const startIndex = ((currentPageFromApi - 1) * pageSize) + 1;
+      const endIndex = Math.min(currentPageFromApi * pageSize, totalUsers);
+      
       return {
-        totalUsers: apiData.count,
-        startIndex: ((currentPage - 1) * pageSize) + 1,
-        endIndex: Math.min(currentPage * pageSize, apiData.count),
-        totalPages: Math.ceil(apiData.count / pageSize),
+        totalUsers,
+        startIndex,
+        endIndex,
+        totalPages,
+        currentPage: currentPageFromApi,
         hasNext: !!apiData.next,
         hasPrevious: !!apiData.previous
       };
@@ -238,17 +297,21 @@ const handleDelete = async (userId: string) => {
         startIndex: startIndex + 1,
         endIndex,
         totalPages,
+        currentPage,
         hasNext: currentPage < totalPages,
         hasPrevious: currentPage > 1
       };
     }
   };
 
-  const { totalUsers, startIndex, endIndex, totalPages, hasNext, hasPrevious } = getPaginationInfo();
+  const { totalUsers, startIndex, endIndex, totalPages, currentPage: currentPageFromApi, hasNext, hasPrevious } = getPaginationInfo();
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
+
+  // Generate page numbers for pagination
+  const pageNumbers = generatePageNumbers(currentPageFromApi, totalPages);
 
   // Determine loading and error states based on type
   const isLoading = type === "leaderboard" ? leaderboardLoading : plansLoading;
@@ -405,40 +468,47 @@ const handleDelete = async (userId: string) => {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-border">
-          <div className="text-sm text-gray-600">
-            Showing {startIndex} to {endIndex} of {totalUsers} users
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={!hasPrevious}
-              className="h-8 w-8 flex items-center justify-center text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              ←
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => (
+        {totalPages > 0 && (
+          <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-border">
+            <div className="text-sm text-gray-600">
+              {/* Showing {startIndex} to {endIndex} of {totalUsers} {type === "plan" ? "payments" : "users"} */}
+            </div>
+            <div className="flex items-center gap-2">
               <button
-                key={i}
-                onClick={() => handlePageChange(i + 1)}
-                className={`h-8 w-8 flex items-center justify-center text-sm rounded transition-colors ${
-                  currentPage === i + 1
-                    ? "bg-[#343F4F] text-white"
-                    : "border border-gray-300 hover:bg-gray-50"
-                }`}
+                onClick={() => handlePageChange(currentPageFromApi - 1)}
+                disabled={!hasPrevious}
+                className="h-8 w-8 flex items-center justify-center text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {i + 1}
+                ←
               </button>
-            ))}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={!hasNext}
-              className="h-8 w-8 flex items-center justify-center text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              →
-            </button>
+              
+              {pageNumbers.map((page, index) => (
+                <button
+                  key={index}
+                  onClick={() => typeof page === 'number' && handlePageChange(page)}
+                  disabled={page === '...'}
+                  className={`h-8 w-8 flex items-center justify-center text-sm rounded transition-colors ${
+                    page === '...' 
+                      ? 'cursor-default border-transparent' 
+                      : currentPageFromApi === page
+                        ? "bg-[#343F4F] text-white"
+                        : "border border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              
+              <button
+                onClick={() => handlePageChange(currentPageFromApi + 1)}
+                disabled={!hasNext}
+                className="h-8 w-8 flex items-center justify-center text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                →
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

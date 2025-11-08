@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const pokemonApi = createApi({
   reducerPath: "pokemonApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://10.10.13.36:8888/", // 👈 use your API root, not the homepage
+    baseUrl: import.meta.env.BASE_URI, 
     prepareHeaders: (headers) => {
       // Add auth header
       const token = localStorage.getItem("token1212");
@@ -48,6 +48,13 @@ export const pokemonApi = createApi({
       }),
     }),
 
+    notificationDelete: build.mutation({
+      query: (id) => ({
+        url: `/dashboard/notifications/${id}/`,
+        method: "DELETE",
+      }),
+    }),
+
     dashboardLogin: build.mutation({
       query: (data) => ({
         url: "/dashboard/login/",
@@ -73,7 +80,8 @@ export const pokemonApi = createApi({
     }),
 
     userLists: build.query({
-      query: () => "/dashboard/users/",
+      query: ({ page = 1, pageSize = 2 } = {}) =>
+        `/dashboard/users/?page=${page}&page_size=10`,
     }),
 
     deactiveUser: build.mutation({
@@ -135,7 +143,8 @@ export const pokemonApi = createApi({
     }),
 
     dashLeaderBoard: build.query({
-      query: () => "/dashboard/leaderboard/",
+      query: ({ page = 1, page_size = 5 } = {}) =>
+        `/dashboard/leaderboard/?page=${page}&page_size=5`,
     }),
 
     dashLeaderboardDelete: build.mutation({
@@ -146,7 +155,8 @@ export const pokemonApi = createApi({
     }),
 
     getPlans: build.query({
-      query: () => "/dashboard/payments/",
+      query: ({ page = 1, page_size = 5 } = {}) =>
+        `/dashboard/payments/?page=${page}&page_size=5`,
     }),
 
     getPrivacy: build.query({
@@ -219,19 +229,19 @@ export const pokemonApi = createApi({
     }),
 
     updatePlanType: build.mutation({
-      query: (data)=> ({
-        url: '/dashboard/users/subscription/update/',
-        method:'POST',
-        body:data
-      })
+      query: (data) => ({
+        url: "/dashboard/users/subscription/update/",
+        method: "POST",
+        body: data,
+      }),
     }),
 
     updateProfile: build.mutation({
-      query:(data)=>({
-        url: '/users/profile/update',
-        method:'PUT',
-        body:data
-      })
+      query: (data) => ({
+        url: "/users/profile/update",
+        method: "PUT",
+        body: data,
+      }),
     }),
 
     dashBoardOverview: build.query({
@@ -244,6 +254,7 @@ export const pokemonApi = createApi({
 export const {
   useGetPokemonByNameQuery,
   useUpdateProfileMutation,
+  useNotificationDeleteMutation,
   useUpdatePlanTypeMutation,
   useProfileQuery,
   useLoginDashboardMutation,

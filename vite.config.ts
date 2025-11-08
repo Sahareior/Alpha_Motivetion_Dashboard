@@ -2,13 +2,12 @@ import react from "@vitejs/plugin-react";
 import tailwind from "tailwindcss";
 import { defineConfig } from "vite";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-   server: {
-    port: 5173,          // choose any free port (default is 5173)
+  server: {
+    host: true,      // 👈 allows access from other devices on LAN
+    port: 5173,      // optional: can be any available port
   },
-
   css: {
     postcss: {
       plugins: [tailwind()],

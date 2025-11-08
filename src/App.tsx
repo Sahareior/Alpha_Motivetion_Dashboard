@@ -44,7 +44,7 @@ const App: React.FC = () => {
   const [modalType, setModalType] = useState("");
   const [modalTitle, setModalTitle] = useState("");
   const [editingItem, setEditingItem] = useState(null);
-  const { data } = useProfileQuery<UserInfo>();
+  const { data,refetch } = useProfileQuery<UserInfo>();
   const [updateProfile] = useUpdateProfileMutation()
 
   console.log(data)
@@ -59,7 +59,7 @@ const handelProfileUpdate = async (data) => {
     }
 
     const res = await updateProfile(formData).unwrap();
-
+    refetch()
     console.log(res, "Profile update response");
     Swal.fire("Success!", "Profile updated successfully!", "success");
     setModalOpen(false);
@@ -214,9 +214,10 @@ const handelProfileUpdate = async (data) => {
           </div>
         </Header>
         <Content
+        className="md:p-[29px] p-5"
           style={{
             margin: "4px 0px",
-            padding: 29,
+            // padding: 29,
             borderRadius: 20,
             backgroundColor: 'white',
             height: 'calc(100vh - 64px)', // Adjust based on header height

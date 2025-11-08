@@ -92,7 +92,7 @@ export function AnalyticsDashboard() {
             </div>
           </div>
           <div className="px-6 pb-6">
-            <div className="h-80">
+            <div className="h-[27rem]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart 
                   data={userActivityData} 
@@ -140,7 +140,7 @@ export function AnalyticsDashboard() {
             )}
           </div>
           <div className="px-6 pb-6">
-            <div className="h-80">
+            <div className="h-60">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie

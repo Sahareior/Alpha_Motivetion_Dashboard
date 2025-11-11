@@ -2,12 +2,13 @@ import React from 'react';
 import { Card, CardContent } from "../../components/ui/card";
 import RevenueTrend from './_components/RevenewTrends';
 import { AnalyticsDashboard } from './_components/AnalyticsDashboard';
-import { useDashBoardOverviewQuery, useDashboardStatsQuery } from '../../../store/slices/apiSlice';
+import { useDashBoardOverviewQuery, useDashboardStatsQuery, useProfileQuery } from '../../../store/slices/apiSlice';
 
 
 const DashHome = () => {
 const {data:dashboardStats} =  useDashBoardOverviewQuery()
 const {data: newStats} = useDashboardStatsQuery()
+const {data:profileData} = useProfileQuery()
 
 console.log(newStats,'this is stats')
       const metricCards = [
@@ -33,12 +34,14 @@ console.log(newStats,'this is stats')
     },
   ];
 
+
+
     return (
         <div>
 
-<div className='my-9 mx-5'>
+<div className='my-9 md:mx-5'>
             <h2 className='text-[32px] font-semibold'>Dashboard</h2>
-          <p className='text-[20px] font-normal'>Welcome back, Sijan</p>
+          <p className='text-[20px] font-normal'>Welcome back, {profileData?.first_name}</p>
 </div>
                     <div className=" grid md:grid-cols-4 grid-cols-1 gap-4 justify-items-center">
                       {metricCards.map((card, index) => (

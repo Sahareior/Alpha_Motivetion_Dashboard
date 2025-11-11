@@ -4,27 +4,24 @@ import { FiEdit3 } from "react-icons/fi";
 import CommonModal from "./Modal/CommonModal";
 import Leaderboard from "./CommonTabel";
 import { AiOutlineMenu } from "react-icons/ai";
+import { Toaster, toast } from 'sonner';
 import TableSection from "./CommonTabel";
 import Swal from "sweetalert2";
-import {useGetBadgesQuery,useCreateBadgesMutation} from '../../../store/slices/apiSlice.js'
+import {useGetBadgesQuery,useCreateBadgesMutation,useEditBadgesMutation} from '../../../store/slices/apiSlice.js'
 
 const Overview = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTitle, setModalTitle] = useState("");
   const [editingItem, setEditingItem] = useState(null);
-  const {data:allbadges} = useGetBadgesQuery()
+  const {data:allbadges, refetch} = useGetBadgesQuery()
   const [createBadges] = useCreateBadgesMutation()
+  const [editBadges] = useEditBadgesMutation ()
 
 
   console.log(editingItem,'badges')
 
-  const handleCreateBadge = () => {
-    setModalType("badge-create");
-    setModalTitle("Create New Badge");
-    setEditingItem(null);
-    setModalOpen(true);
-  };
+
 
   const handleEditBadge = (badge) => {
     console.log(badge, "this is badge");
@@ -34,75 +31,58 @@ const Overview = () => {
     setModalOpen(true);
   };
 
-  const handleCreateCategory = () => {
-    setModalType("category-create");
-    setModalTitle("Create New Category");
-    setEditingItem(null);
-    setModalOpen(true);
-  };
-
-  const handleEditCategory = (category) => {
-    setModalType("category-edit");
-    setModalTitle("Edit Category");
-    setEditingItem(category);
-    setModalOpen(true);
-  };
 
 
-const handelDelete = () => {
-  Swal.fire({
-    title: "Are you sure?",
-    text: "This action cannot be undone!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // 👉 Place your delete logic here (API call, state update, etc.)
-      console.log("Deleted!");
-
-      Swal.fire("Deleted!", "Your item has been removed.", "success");
-    }
-  });
-};
-
-
-  const handleSave = async (data) => {
-    console.log("Saving data:", data);
-    console.log("Operation type:", modalType);
-    console.log("Editing item:", editingItem);
-
-    // Handle save logic based on modalType
+const handleSave = async (data) => {
+  try {
     switch (modalType) {
       case "badge-create":
-        // Create new badge
-        const res = await createBadges(data)
+        const formData = new FormData();
+        formData.append('name', data.name);
+        formData.append('description', data.description);
+        formData.append('points_required', data.points);
+        formData.append('level_required', data.level);
+        
+        if (data.icon instanceof File) {
+          formData.append('image', data.icon);
+        }
+        
+        const res = await createBadges(formData);
         break;
+        
       case "badge-edit":
-        // Update existing badge
+        const editFormData = new FormData();
+        editFormData.append('name', data.name);
+        editFormData.append('description', data.description);
+        editFormData.append('points_required', data.points);
+        editFormData.append('level_required', data.level);
+        
+        if (data.icon instanceof File) {
+          editFormData.append('image', data.icon);
+        }
+        
+        const response = await editBadges({
+          id: editingItem?.id, 
+          data: editFormData
+        });
+             toast('Badge updated successfully!')
+        refetch()
         break;
-      case "category-create":
-        // Create new category
-        break;
-      case "category-edit":
-        // Update existing category
-        break;
+        
       default:
         break;
     }
-  };
+    
+    // Close modal on success
+    setModalOpen(false);
+    setEditingItem(null);
+    
+  } catch (error) {
+    console.error('Error saving badge:', error);
+  }
+};
 
-
-  const badges = [
-  { id: 1, name: "Lone Wolf", description: "Awarded for solo achievements" },
-  { id: 2, name: "Team Player", description: "For excellent teamwork" },
-  { id: 3, name: "High Scorer", description: "Top scoring badge" },
-  { id: 4, name: "Rising Star", description: "Newcomer with outstanding performance" },
-  { id: 5, name: "Veteran", description: "Long-term consistent performance" },
-  { id: 6, name: "Innovator", description: "For creative contributions" },
-];
+console.log(allbadges,'allbadges')
 
 
 
@@ -111,15 +91,20 @@ const MotivetionCard = ({ item, type, onEdit }) => (
     <div className="flex justify-between">
       <div className="flex gap-2 items-center">
         <img
-          className="w-4 h-4 rounded-full"
-          src="https://images.unsplash.com/photo-1494959764136-6be9eb3c261e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          className="w-6 h-6 rounded-full"
+          // src="https://images.unsplash.com/photo-1494959764136-6be9eb3c261e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          src={item.image || "https://images.unsplash.com/photo-1494959764136-6be9eb3c261e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
           alt=""
         />
         <h2>{item.name}</h2>
       </div>
-      <div className="flex items-center gap-4">
-
-        
+  <div className="flex items-center gap-4">
+        <FaRegEdit
+        size={18} 
+          className="text-white cursor-pointer"
+          onClick={() => onEdit(item)}
+        />
+      
       </div>
     </div>
     <p className="mt-2 w-[80%] text-start">{item.description}</p>
@@ -128,6 +113,7 @@ const MotivetionCard = ({ item, type, onEdit }) => (
 
   return (
     <div>
+      <Toaster />
       <div className="mt-5 pb-7 mx-5">
         <h3 className="text-3xl font-semibold">Gamification Overview</h3>
       </div>

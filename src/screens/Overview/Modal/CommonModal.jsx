@@ -15,22 +15,34 @@ const CommonModal = ({
     description: "",
     email: "",
     cost: "",
+    points: "",
+    level: "",
     feature: "",
-    icon: null,
+    icon: "",
     ...initialData
   });
 
-  useEffect(() => {
-    setFormData({
+useEffect(() => {
+  if (isOpen) {
+    const mappedData = initialData ? {
+      name: initialData.name || "",
+      description: initialData.description || "",
+      points: initialData.points_required || "",
+      level: initialData.level_required || "",
+      // For files, you can't pre-populate the file input, but you can show the existing image
+      icon: initialData.image, // File inputs can't have initial values for security reasons
+      existingImage: initialData.image // Store this to show current image
+    } : {
       name: "",
       description: "",
-      email: "",
-      cost: "",
-      feature: "",
-      icon: null,
-      ...initialData
-    });
-  }, [initialData, isOpen]);
+      points: "",
+      level: "",
+      icon: ""
+    };
+    
+    setFormData(mappedData);
+  }
+}, [initialData, isOpen]);
 
   const handleChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -59,6 +71,18 @@ const CommonModal = ({
             label: "Name",
             type: "text",
             placeholder: "Enter badge name"
+          },
+          {
+            name: "points",
+            label: "Points",
+            type: "text",
+            placeholder: "Enter badge points"
+          },
+          {
+            name: "level",
+            label: "Level",
+            type: "text",
+            placeholder: "Enter badge level"
           },
           {
             name: "description", 
@@ -124,7 +148,7 @@ const CommonModal = ({
     }
   };
 
-  console.log(data,'this is datya')
+
   const fields = getFieldConfig();
 
   return (

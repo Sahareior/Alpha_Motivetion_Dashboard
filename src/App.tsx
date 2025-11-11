@@ -214,7 +214,7 @@ const handelProfileUpdate = async (data) => {
           </div>
         </Header>
         <Content
-        className="md:p-[29px] p-5"
+        className="md:p-[29px] p-1"
           style={{
             margin: "4px 0px",
             // padding: 29,

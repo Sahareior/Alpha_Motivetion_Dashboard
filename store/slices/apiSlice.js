@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const pokemonApi = createApi({
   reducerPath: "pokemonApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_BASE_URI, 
+    baseUrl: import.meta.env.VITE_BASE_URI,
     prepareHeaders: (headers) => {
       // Add auth header
       const token = localStorage.getItem("token1212");
@@ -141,6 +141,17 @@ export const pokemonApi = createApi({
         body: data,
       }),
     }),
+    // /dashboard/badges/as/
+    editBadges: build.mutation({
+      query: ({ id, data }) => {
+        console.log(data, id, "jasgdfjhagf")
+        return {
+          url: `/dashboard/badges/${id}/`,
+          method: "PUT",
+          body: data,
+        };
+      },
+    }),
 
     dashLeaderBoard: build.query({
       query: ({ page = 1, page_size = 5 } = {}) =>
@@ -253,6 +264,7 @@ export const pokemonApi = createApi({
 // Export auto-generated hooks
 export const {
   useGetPokemonByNameQuery,
+  useEditBadgesMutation,
   useUpdateProfileMutation,
   useNotificationDeleteMutation,
   useUpdatePlanTypeMutation,

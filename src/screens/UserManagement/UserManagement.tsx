@@ -461,11 +461,11 @@ export const UserManagement = (): JSX.Element => {
       <Toaster />
       {/* Main Content */}
       <div className="">
-        <div className='mt-5 pb-5 mx-5'>
+        <div className='mt-5 pb-5 md:mx-5'>
           <h2 className='text-[32px] font-semibold'>User Management</h2>
         </div>
         <Card className="">
-          <CardContent className="p-8">
+          <CardContent className="md:p-8">
             
             <div className="mb-6">
               <h2 className="text-[24px] font-semibold text-[#000000] mb-5">Users</h2>

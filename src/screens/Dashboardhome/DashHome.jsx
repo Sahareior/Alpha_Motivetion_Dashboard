@@ -1,14 +1,41 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent } from "../../components/ui/card";
 import RevenueTrend from './_components/RevenewTrends';
 import { AnalyticsDashboard } from './_components/AnalyticsDashboard';
 import { useDashBoardOverviewQuery, useDashboardStatsQuery, useProfileQuery } from '../../../store/slices/apiSlice';
+import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 
 const DashHome = () => {
 const {data:dashboardStats} =  useDashBoardOverviewQuery()
-const {data: newStats} = useDashboardStatsQuery()
+const {data: newStats, error} = useDashboardStatsQuery()
 const {data:profileData} = useProfileQuery()
+const navigate = useNavigate()
+
+
+
+
+useEffect(() => {
+  if (error?.status === 401) {
+    console.error("Error fetching dashboard stats:", error);
+
+    Swal.fire({
+      title: "Session Expired",
+      text: "Your login session has expired. Please log in again.",
+      icon: "warning",
+      confirmButtonText: "OK",
+      confirmButtonColor: "#000", // or your theme color
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem("token1212");
+        navigate("/login", { replace: true });
+      }
+    });
+  }
+}, [error]);
 
 console.log(newStats,'this is stats')
       const metricCards = [

@@ -1,9 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-  import { Provider } from 'react-redux'
-
+import { Provider } from 'react-redux'
 import {
-  createBrowserRouter,
+  createHashRouter,
   RouterProvider,
 } from "react-router-dom";
 import App from "./App";
@@ -17,10 +16,7 @@ import Login from "./screens/auth/Login";
 import {store} from '../store/store.js'
 import PrivateRoute from './Routes/PrivateRoute';
 
-
-
-
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: "/login",
     element: <Login />,
@@ -33,7 +29,7 @@ const router = createBrowserRouter([
       </PrivateRoute>
     ),
     children: [
-      { path: "/", element: <DashHome /> },
+      { path: "", element: <DashHome /> }, // Changed from "/" to ""
       { path: "user-management", element: <UserManagement /> },
       { path: "overview", element: <Overview /> },
       { path: "notification", element: <PushNotifications /> },
@@ -43,7 +39,7 @@ const router = createBrowserRouter([
   },
 ]);
 
-createRoot(document.getElementById("app") as HTMLElement).render(
+createRoot(document.getElementById("app")).render(
   <StrictMode>
     <Provider store={store}>
       <RouterProvider router={router} />

@@ -66,6 +66,7 @@ const Login = () => {
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
+              checked={true}
               id="remember"
               className="h-4 w-4 text-blue-400 bg-[#343F4F] focus:ring-blue-500 rounded"
             />

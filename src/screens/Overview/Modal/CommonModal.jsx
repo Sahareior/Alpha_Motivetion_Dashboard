@@ -78,12 +78,7 @@ useEffect(() => {
             type: "text",
             placeholder: "Enter badge points"
           },
-          {
-            name: "level",
-            label: "Level",
-            type: "text",
-            placeholder: "Enter badge level"
-          },
+        
           {
             name: "description", 
             label: "Description",

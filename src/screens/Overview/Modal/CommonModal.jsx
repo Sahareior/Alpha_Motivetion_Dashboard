@@ -21,28 +21,35 @@ const CommonModal = ({
     icon: "",
     ...initialData
   });
+  const [imagePreview, setImagePreview] = useState(null);
 
-useEffect(() => {
-  if (isOpen) {
-    const mappedData = initialData ? {
-      name: initialData.name || "",
-      description: initialData.description || "",
-      points: initialData.points_required || "",
-      level: initialData.level_required || "",
-      // For files, you can't pre-populate the file input, but you can show the existing image
-      icon: initialData.image, // File inputs can't have initial values for security reasons
-      existingImage: initialData.image // Store this to show current image
-    } : {
-      name: "",
-      description: "",
-      points: "",
-      level: "",
-      icon: ""
-    };
-    
-    setFormData(mappedData);
-  }
-}, [initialData, isOpen]);
+  useEffect(() => {
+    if (isOpen) {
+      const mappedData = initialData ? {
+        name: initialData.name || "",
+        description: initialData.description || "",
+        points: initialData.points_required || "",
+        level: initialData.level_required || "",
+        icon: initialData.image,
+        existingImage: initialData.image
+      } : {
+        name: "",
+        description: "",
+        points: "",
+        level: "",
+        icon: ""
+      };
+      
+      setFormData(mappedData);
+      
+      // Set initial image preview if existing image is available
+      if (initialData?.image) {
+        setImagePreview(initialData.image);
+      } else {
+        setImagePreview(null);
+      }
+    }
+  }, [initialData, isOpen]);
 
   const handleChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -50,7 +57,19 @@ useEffect(() => {
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
-    handleChange('icon', file);
+    if (file) {
+      handleChange('icon', file);
+      
+      // Create image preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // If no file selected, reset to existing image or null
+      setImagePreview(formData.existingImage || null);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -78,7 +97,6 @@ useEffect(() => {
             type: "text",
             placeholder: "Enter badge points"
           },
-        
           {
             name: "description", 
             label: "Description",
@@ -124,12 +142,6 @@ useEffect(() => {
             type: "text",
             placeholder: data?.first_name
           },
-          // {
-          //   name: "email",
-          //   label: "Email",
-          //   type: "text",
-          //   placeholder: "Enter your email address"
-          // },
           {
             name: "icon",
             label: "Profile Photo",
@@ -137,12 +149,10 @@ useEffect(() => {
           }
         ];
       
-      // Add other cases as needed
       default:
         return [];
     }
   };
-
 
   const fields = getFieldConfig();
 
@@ -160,6 +170,19 @@ useEffect(() => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Image Preview */}
+          {imagePreview && (
+            <div className="flex justify-center mb-4">
+              <div className="relative">
+                <img 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  className="w-32 h-32 object-cover rounded-full border-2 border-gray-300"
+                />
+              </div>
+            </div>
+          )}
+
           {fields.map((field) => (
             <div key={field.name}>
               <label className="block text-xl font-medium text-gray-700 mb-2">
@@ -193,6 +216,7 @@ useEffect(() => {
                   <input
                     type="file"
                     onChange={handleFileChange}
+                    accept="image/*"
                     className="w-full text-sm text-gray-500 border border-black rounded-md 
                              file:mr-4 file:py-2 file:px-4 file:rounded-md file:text-sm 
                              file:font-semibold file:bg-[#343F4F] file:text-white 
